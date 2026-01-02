@@ -35,3 +35,24 @@ export interface QuranRawData {
   uthmani: string[][];
   simple: string[][];
 }
+
+export interface SpeechRecognitionResult {
+  transcript: string;
+  confidence: number;
+  isFinal: boolean;
+}
+
+export interface SpeechRecognitionConfig {
+  language: string;
+  continuous: boolean;
+  interimResults: boolean;
+}
+
+export type RecognitionStatus = 'idle' | 'listening' | 'stopped' | 'error';
+
+export interface SpeechRecognitionCallbacks {
+  onResult?: (result: SpeechRecognitionResult) => void;
+  onError?: (error: Error) => void;
+  onEnd?: () => void;
+  onStart?: () => void;
+}
