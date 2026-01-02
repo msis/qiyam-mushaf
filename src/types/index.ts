@@ -56,3 +56,7 @@ export interface SpeechRecognitionCallbacks {
   onEnd?: () => void;
   onStart?: () => void;
 }
+
+export interface HighlightedWords {
+  [verseIndex: number]: Set<number>;
+}

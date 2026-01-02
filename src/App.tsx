@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { QuranDataService } from './services/QuranDataService';
 import { SpeechRecognitionService } from './services/SpeechRecognitionService';
 import { NavigationModal } from './components/NavigationModal';
+import { matchSpokenWords, type HighlightedWords } from './utils/wordMatcher';
+import type { HighlightedWords as HighlightedWordsType } from './types';
 
 export function App() {
   const [surahs, setSurahs] = useState<any[]>([]);
@@ -12,11 +14,13 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [recognitionStatus, setRecognitionStatus] = useState<any>('idle');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [highlightedWords, setHighlightedWords] = useState<HighlightedWordsType>({});
+  
   const quranService = QuranDataService.getInstance();
   const speechService = SpeechRecognitionService.getInstance();
   const quranDisplayRef = useRef<HTMLDivElement>(null);
   const currentVerseRef = useRef<HTMLDivElement>(null);
+  const recognizedTranscriptRef = useRef('');
 
   useEffect(() => {
     async function loadSurahs() {
@@ -38,7 +42,21 @@ export function App() {
   useEffect(() => {
     speechService.on({
       onResult: (result: any) => {
-        console.log('Speech result:', result);
+        if (result.transcript && result.transcript.trim().length > 0) {
+          const transcript = result.transcript.trim();
+          
+          const currentVerseIndex = selectedVerse - 1;
+          
+          if (currentSurah) {
+            const newMatches = matchSpokenWords(
+              transcript,
+              currentSurah.verses,
+              currentVerseIndex
+            );
+            
+            setHighlightedWords(newMatches);
+          }
+        }
       },
       onError: (err: Error) => {
         console.error('Speech error:', err);
@@ -48,9 +66,11 @@ export function App() {
       },
       onStart: () => {
         setRecognitionStatus('listening');
+        recognizedTranscriptRef.current = '';
+        setHighlightedWords({});
       }
     });
-  }, [speechService]);
+  }, [speechService, selectedVerse, currentSurah]);
 
   useEffect(() => {
     if (currentVerseRef.current && quranDisplayRef.current) {
@@ -63,6 +83,8 @@ export function App() {
       const surah = await quranService.getSurah(surahNumber);
       if (surah) {
         setCurrentSurah(surah);
+        setHighlightedWords({});
+        recognizedTranscriptRef.current = '';
       }
     } catch (err) {
       console.error('Failed to load surah:', err);
@@ -77,6 +99,11 @@ export function App() {
 
   function handleVerseChange(verseNumber: number) {
     setSelectedVerse(verseNumber);
+    setHighlightedWords({});
+    recognizedTranscriptRef.current = '';
+    if (recognitionStatus === 'listening') {
+      handleStop();
+    }
   }
 
   function handleStart() {
@@ -175,6 +202,7 @@ export function App() {
 
                 {currentSurah.verses.map((verse: any, index: number) => {
                   const isCurrentVerse = verse.number === selectedVerse;
+                  const verseHighlights = highlightedWords[index];
                   
                   return (
                     <div
@@ -195,7 +223,22 @@ export function App() {
                         <p className={`text-2xl leading-relaxed font-arabic ${
                           isCurrentVerse ? 'text-gray-900' : ''
                         }`}>
-                          {verse.uthmani}
+                          {verse.words.map((word: any, wordIndex: number) => {
+                            const isHighlighted = verseHighlights?.has(wordIndex);
+                            
+                            return (
+                              <span
+                                key={wordIndex}
+                                className={`inline-block px-1 mx-0.5 rounded transition-all ${
+                                  isHighlighted 
+                                    ? 'bg-amber-500 text-white font-bold scale-110'
+                                    : 'transition-colors'
+                                }`}
+                              >
+                                {word.uthmani}
+                              </span>
+                            );
+                          })}
                         </p>
                       </div>
                     </div>
