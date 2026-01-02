@@ -3,8 +3,8 @@ import index from "./index.html";
 
 const server = serve({
   routes: {
-    // Serve index.html for all unmatched routes.
-    "/*": index,
+    "/data/quran-uthmani-list.json": new Response(Bun.file("public/data/quran-uthmani-list.json")),
+    "/data/quran-simple-clean-list.json": new Response(Bun.file("public/data/quran-simple-clean-list.json")),
 
     "/api/hello": {
       async GET(req) {
@@ -27,6 +27,9 @@ const server = serve({
         message: `Hello, ${name}!`,
       });
     },
+
+    // Serve index.html for all unmatched routes.
+    "/*": index,
   },
 
   development: process.env.NODE_ENV !== "production" && {

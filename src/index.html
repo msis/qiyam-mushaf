@@ -1,10 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="./logo.svg" />
-    <title>Bun + React</title>
+    <title>Quran Teleprompter</title>
+    <script src="https://cdn.tailwindcss.com">
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              arabic: ['Amiri', 'Traditional Arabic', 'Arial', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

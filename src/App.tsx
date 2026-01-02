@@ -1,22 +1,221 @@
-import { APITester } from "./APITester";
-import "./index.css";
-
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+import { useState, useEffect, useRef } from 'react';
+import { QuranDataService } from './services/QuranDataService';
+import { SpeechRecognitionService } from './services/SpeechRecognitionService';
+import { NavigationModal } from './components/NavigationModal';
 
 export function App() {
+  const [surahs, setSurahs] = useState<any[]>([]);
+  const [selectedSurah, setSelectedSurah] = useState(1);
+  const [selectedVerse, setSelectedVerse] = useState(1);
+  const [currentSurah, setCurrentSurah] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [recognitionStatus, setRecognitionStatus] = useState<any>('idle');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const quranService = QuranDataService.getInstance();
+  const speechService = SpeechRecognitionService.getInstance();
+  const quranDisplayRef = useRef<HTMLDivElement>(null);
+  const currentVerseRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function loadSurahs() {
+      try {
+        const allSurahs = await quranService.getAllSurahs();
+        setSurahs(allSurahs);
+        
+        await loadSurah(1);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load Quran data');
+        setLoading(false);
+      }
+    }
+
+    loadSurahs();
+  }, []);
+
+  useEffect(() => {
+    speechService.on({
+      onResult: (result: any) => {
+        console.log('Speech result:', result);
+      },
+      onError: (err: Error) => {
+        console.error('Speech error:', err);
+      },
+      onEnd: () => {
+        setRecognitionStatus('idle');
+      },
+      onStart: () => {
+        setRecognitionStatus('listening');
+      }
+    });
+  }, [speechService]);
+
+  useEffect(() => {
+    if (currentVerseRef.current && quranDisplayRef.current) {
+      currentVerseRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [selectedVerse, currentSurah]);
+
+  async function loadSurah(surahNumber: number) {
+    try {
+      const surah = await quranService.getSurah(surahNumber);
+      if (surah) {
+        setCurrentSurah(surah);
+      }
+    } catch (err) {
+      console.error('Failed to load surah:', err);
+    }
+  }
+
+  function handleSurahChange(surahNumber: number) {
+    setSelectedSurah(surahNumber);
+    setSelectedVerse(1);
+    loadSurah(surahNumber);
+  }
+
+  function handleVerseChange(verseNumber: number) {
+    setSelectedVerse(verseNumber);
+  }
+
+  function handleStart() {
+    try {
+      speechService.start();
+    } catch (err) {
+      console.error('Failed to start recognition:', err);
+    }
+  }
+
+  function handleStop() {
+    try {
+      speechService.stop();
+      setRecognitionStatus('stopped');
+    } catch (err) {
+      console.error('Failed to stop recognition:', err);
+    }
+  }
+
+  function toggleRecognition() {
+    if (recognitionStatus === 'listening') {
+      handleStop();
+    } else {
+      handleStart();
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center font-arabic">
+        <div className="text-amber-100 text-xl">Loading Quran data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center font-arabic">
+        <div className="bg-red-900 bg-opacity-50 border border-red-600 rounded-lg p-6 text-red-100 max-w-md mx-4">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="app">
-      <div className="logo-container">
-        <img src={logo} alt="Bun Logo" className="logo bun-logo" />
-        <img src={reactLogo} alt="React Logo" className="logo react-logo" />
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+      <div className="fixed top-4 right-4 z-40">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full shadow-lg transition-colors"
+          title="Open navigation"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
 
-      <h1>Bun + React</h1>
-      <p>
-        Edit <code>src/App.tsx</code> and save to test HMR
-      </p>
-      <APITester />
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+        <button
+          onClick={toggleRecognition}
+          className={`p-4 rounded-full shadow-lg transition-all ${
+            recognitionStatus === 'listening'
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-green-600 hover:bg-green-700'
+          } text-white`}
+          title={recognitionStatus === 'listening' ? 'Stop recording' : 'Start recording'}
+        >
+          {recognitionStatus === 'listening' ? (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="6" width="12" height="12" strokeWidth={2} />
+            </svg>
+          ) : (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-hidden">
+        <div
+          ref={quranDisplayRef}
+          className="h-full overflow-y-auto px-4 py-20"
+        >
+          <div className="max-w-3xl mx-auto space-y-4">
+            {currentSurah && (
+              <>
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-amber-100 mb-2 font-arabic">
+                    سورة {currentSurah.name}
+                  </h1>
+                  <p className="text-amber-200 text-lg">{currentSurah.nameEn}</p>
+                </div>
+
+                {currentSurah.verses.map((verse: any, index: number) => {
+                  const isCurrentVerse = verse.number === selectedVerse;
+                  
+                  return (
+                    <div
+                      key={verse.number}
+                      ref={isCurrentVerse ? currentVerseRef : null}
+                      className={`text-right p-6 rounded-lg transition-all duration-300 ${
+                        isCurrentVerse
+                          ? 'bg-amber-100 text-gray-900 scale-105 shadow-xl'
+                          : 'text-gray-500'
+                      }`}
+                    >
+                      <div className="flex gap-4 items-start">
+                        <span className={`text-sm font-bold flex-shrink-0 pt-2 ${
+                          isCurrentVerse ? 'text-amber-700' : 'text-gray-600'
+                        }`}>
+                          ({verse.number})
+                        </span>
+                        <p className={`text-2xl leading-relaxed font-arabic ${
+                          isCurrentVerse ? 'text-gray-900' : ''
+                        }`}>
+                          {verse.uthmani}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <NavigationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        surahs={surahs}
+        selectedSurah={selectedSurah}
+        selectedVerse={selectedVerse}
+        onSurahChange={handleSurahChange}
+        onVerseChange={handleVerseChange}
+      />
     </div>
   );
 }
