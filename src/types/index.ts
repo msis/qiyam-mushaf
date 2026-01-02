@@ -60,3 +60,11 @@ export interface SpeechRecognitionCallbacks {
 export interface HighlightedWords {
   [verseIndex: number]: Set<number>;
 }
+
+export interface ScrollManagerConfig {
+  container?: HTMLElement;
+  verseCount: number;
+  onVerseChange?: (verseNumber: number) => void;
+  autoAdvance?: boolean;
+  verseOffset?: number;
+}

@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { QuranDataService } from './services/QuranDataService';
 import { SpeechRecognitionService } from './services/SpeechRecognitionService';
+import { ScrollManager } from './services/ScrollManager';
 import { NavigationModal } from './components/NavigationModal';
-import { matchSpokenWords, type HighlightedWords } from './utils/wordMatcher';
-import type { HighlightedWords as HighlightedWordsType } from './types';
+import { matchSpokenWords, type HighlightedWords as HighlightedWordsType } from './utils/wordMatcher';
 
 export function App() {
   const [surahs, setSurahs] = useState<any[]>([]);
@@ -20,7 +20,53 @@ export function App() {
   const speechService = SpeechRecognitionService.getInstance();
   const quranDisplayRef = useRef<HTMLDivElement>(null);
   const currentVerseRef = useRef<HTMLDivElement>(null);
+  const scrollManagerRef = useRef<ScrollManager | null>(null);
   const recognizedTranscriptRef = useRef('');
+
+  const initializeScrollManager = useCallback(() => {
+    if (!currentSurah || !quranDisplayRef.current) {
+      return;
+    }
+
+    scrollManagerRef.current = new ScrollManager({
+      container: quranDisplayRef.current,
+      verseCount: currentSurah.verseCount,
+      onVerseChange: (verseNumber) => {
+        handleAutoAdvance(verseNumber);
+      }
+    });
+
+    scrollManagerRef.current.setCurrentVerse(selectedVerse);
+  }, [currentSurah, selectedVerse]);
+
+  const handleAutoAdvance = useCallback((verseNumber: number) => {
+    setSelectedVerse(verseNumber);
+    scrollManagerRef.current?.setCurrentVerse(verseNumber);
+  }, []);
+
+  const handleManualVerseChange = useCallback((verseNumber: number) => {
+    setSelectedVerse(verseNumber);
+    setHighlightedWords({});
+    recognizedTranscriptRef.current = '';
+    scrollManagerRef.current?.setCurrentVerse(verseNumber);
+    
+    if (recognitionStatus === 'listening') {
+      handleStop();
+    }
+  }, [recognitionStatus]);
+
+  useEffect(() => {
+    initializeScrollManager();
+  }, [initializeScrollManager]);
+
+  useEffect(() => {
+    if (scrollManagerRef.current) {
+      scrollManagerRef.current.setCurrentVerse(selectedVerse);
+      scrollManagerRef.current.updateConfig({
+        verseCount: currentSurah?.verseCount || 0
+      });
+    }
+  }, [selectedVerse, currentSurah]);
 
   useEffect(() => {
     async function loadSurahs() {
@@ -47,7 +93,7 @@ export function App() {
           
           const currentVerseIndex = selectedVerse - 1;
           
-          if (currentSurah) {
+          if (currentSurah && scrollManagerRef.current) {
             const newMatches = matchSpokenWords(
               transcript,
               currentSurah.verses,
@@ -55,6 +101,12 @@ export function App() {
             );
             
             setHighlightedWords(newMatches);
+
+            if (scrollManagerRef.current.checkShouldAdvance(currentSurah.verses, newMatches)) {
+              setTimeout(() => {
+                scrollManagerRef.current?.advanceToNextVerse(currentSurah.verses, newMatches);
+              }, 500);
+            }
           }
         }
       },
@@ -66,7 +118,6 @@ export function App() {
       },
       onStart: () => {
         setRecognitionStatus('listening');
-        recognizedTranscriptRef.current = '';
         setHighlightedWords({});
       }
     });
@@ -84,7 +135,7 @@ export function App() {
       if (surah) {
         setCurrentSurah(surah);
         setHighlightedWords({});
-        recognizedTranscriptRef.current = '';
+        scrollManagerRef.current?.updateConfig({ verseCount: surah.verseCount });
       }
     } catch (err) {
       console.error('Failed to load surah:', err);
@@ -95,15 +146,6 @@ export function App() {
     setSelectedSurah(surahNumber);
     setSelectedVerse(1);
     loadSurah(surahNumber);
-  }
-
-  function handleVerseChange(verseNumber: number) {
-    setSelectedVerse(verseNumber);
-    setHighlightedWords({});
-    recognizedTranscriptRef.current = '';
-    if (recognitionStatus === 'listening') {
-      handleStop();
-    }
   }
 
   function handleStart() {
@@ -208,6 +250,7 @@ export function App() {
                     <div
                       key={verse.number}
                       ref={isCurrentVerse ? currentVerseRef : null}
+                      data-verse-number={verse.number}
                       className={`text-right p-6 rounded-lg transition-all duration-300 ${
                         isCurrentVerse
                           ? 'bg-amber-100 text-gray-900 scale-105 shadow-xl'
@@ -257,7 +300,7 @@ export function App() {
         selectedSurah={selectedSurah}
         selectedVerse={selectedVerse}
         onSurahChange={handleSurahChange}
-        onVerseChange={handleVerseChange}
+        onVerseChange={handleManualVerseChange}
       />
     </div>
   );
