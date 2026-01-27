@@ -117,4 +117,9 @@ export const SURAH_NAMES = [
 
 export const SURAH_COUNT = 114;
 export const LANGUAGE_CODE = 'ar-SA';
-export const STORAGE_KEY = 'quran-teleprompter-data';
+
+// IndexedDB configuration
+export const DB_NAME = 'quran-teleprompter';
+export const DB_VERSION = 1;
+export const STORE_NAME = 'cache';
+export const CACHE_KEY = 'quran-data';
