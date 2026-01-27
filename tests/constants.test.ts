@@ -1,5 +1,10 @@
 import { expect, test, describe } from "bun:test";
-import { SURAH_NAMES, SURAH_COUNT, LANGUAGE_CODE, STORAGE_KEY } from "../src/utils/constants";
+import {
+  SURAH_NAMES,
+  SURAH_COUNT,
+  LANGUAGE_CODE,
+  CACHE_KEY,
+} from "../src/utils/constants";
 
 describe("Constants", () => {
   test("SURAH_COUNT should be 114", () => {
@@ -51,8 +56,8 @@ describe("Constants", () => {
     expect(lastSurah.verseCount).toBe(6);
   });
 
-  test("STORAGE_KEY should be defined", () => {
-    expect(STORAGE_KEY).toBeTruthy();
-    expect(typeof STORAGE_KEY).toBe("string");
+  test("CACHE_KEY should be defined", () => {
+    expect(CACHE_KEY).toBeTruthy();
+    expect(typeof CACHE_KEY).toBe("string");
   });
 });
