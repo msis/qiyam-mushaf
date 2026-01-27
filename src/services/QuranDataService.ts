@@ -1,11 +1,12 @@
 import type { QuranData, QuranRawData, Surah, Verse } from '../types';
 import { processQuranData, findSurahByNumber, findVerseByNumber } from '../utils/dataProcessor';
-import { STORAGE_KEY } from '../utils/constants';
+import { DB_NAME, DB_VERSION, STORE_NAME, CACHE_KEY } from '../utils/constants';
 
 export class QuranDataService {
   private static instance: QuranDataService;
   private data: QuranData | null = null;
   private loadingPromise: Promise<QuranData> | null = null;
+  private dbPromise: Promise<IDBDatabase> | null = null;
 
   private constructor() {}
 
@@ -14,6 +15,26 @@ export class QuranDataService {
       QuranDataService.instance = new QuranDataService();
     }
     return QuranDataService.instance;
+  }
+
+  private openDB(): Promise<IDBDatabase> {
+    if (this.dbPromise) return this.dbPromise;
+
+    this.dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+    });
+
+    return this.dbPromise;
   }
 
   async loadData(): Promise<QuranData> {
@@ -25,25 +46,29 @@ export class QuranDataService {
       return this.loadingPromise;
     }
 
+    this.loadingPromise = this.loadDataInternal();
+
     try {
-      const cached = this.loadFromCache();
+      this.data = await this.loadingPromise;
+      return this.data;
+    } finally {
+      this.loadingPromise = null;
+    }
+  }
+
+  private async loadDataInternal(): Promise<QuranData> {
+    try {
+      const cached = await this.loadFromCache();
       if (cached) {
-        this.data = cached;
         return cached;
       }
     } catch (error) {
       console.warn('Failed to load from cache, fetching from files:', error);
     }
 
-    this.loadingPromise = this.fetchAndProcessData();
-    
-    try {
-      this.data = await this.loadingPromise;
-      this.saveToCache(this.data);
-      return this.data;
-    } finally {
-      this.loadingPromise = null;
-    }
+    const data = await this.fetchAndProcessData();
+    this.saveToCache(data);
+    return data;
   }
 
   private async fetchAndProcessData(): Promise<QuranData> {
@@ -64,21 +89,29 @@ export class QuranDataService {
     return processQuranData(rawData);
   }
 
-  private loadFromCache(): QuranData | null {
-    try {
-      const cached = localStorage.getItem(STORAGE_KEY);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch (error) {
-      console.error('Error loading from cache:', error);
-    }
-    return null;
+  private async loadFromCache(): Promise<QuranData | null> {
+    const db = await this.openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.get(CACHE_KEY);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result || null);
+    });
   }
 
-  private saveToCache(data: QuranData): void {
+  private async saveToCache(data: QuranData): Promise<void> {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const db = await this.openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.put(data, CACHE_KEY);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve();
+      });
     } catch (error) {
       console.error('Error saving to cache:', error);
     }
@@ -100,8 +133,22 @@ export class QuranDataService {
     return data.surahs;
   }
 
-  clearCache(): void {
-    localStorage.removeItem(STORAGE_KEY);
-    this.data = null;
+  async clearCache(): Promise<void> {
+    try {
+      const db = await this.openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.delete(CACHE_KEY);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          this.data = null;
+          resolve();
+        };
+      });
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
   }
 }
