@@ -68,3 +68,29 @@ export interface ScrollManagerConfig {
   autoAdvance?: boolean;
   verseOffset?: number;
 }
+
+// Global addressing types for full Quran continuous scroll
+export type GlobalVerseKey = `${number}:${number}`;  // "surah:verse" e.g., "2:255"
+
+export interface GlobalHighlightedWords {
+  [verseKey: GlobalVerseKey]: Set<number>;
+}
+
+export type RenderableItemType = 'surah-header' | 'bismillah' | 'verse';
+
+export interface RenderableItem {
+  type: RenderableItemType;
+  index: number;              // flat index (0 to ~6400)
+  surahNumber: number;
+  // Only for type === 'verse' (speech recognition targets these only):
+  verse?: Verse;
+  verseKey?: GlobalVerseKey;
+  // Only for type === 'surah-header' (display only, no speech):
+  surahData?: Surah;
+  // type === 'bismillah' has no extra fields (display only, no speech)
+}
+
+export interface LookupMaps {
+  keyToIndex: Map<GlobalVerseKey, number>;
+  indexToKey: Map<number, { surah: number; verse: number }>;
+}

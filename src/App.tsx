@@ -1,112 +1,140 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { QuranDataService } from './services/QuranDataService';
 import { SpeechRecognitionService } from './services/SpeechRecognitionService';
-import { ScrollManager } from './services/ScrollManager';
+import { GlobalScrollManager } from './services/GlobalScrollManager';
 import { NavigationModal } from './components/NavigationModal';
-import { matchSpokenWords, type HighlightedWords as HighlightedWordsType } from './utils/wordMatcher';
+import { QuranVirtualList, type QuranVirtualListHandle } from './components/QuranVirtualList';
+import { matchSpokenWords } from './utils/wordMatcher';
+import { buildRenderableItems, buildLookupMaps, toGlobalKey } from './utils/globalAddressing';
+import type { Surah, RenderableItem, LookupMaps, GlobalHighlightedWords, GlobalVerseKey } from './types';
 
 export function App() {
-  const [surahs, setSurahs] = useState<any[]>([]);
-  const [selectedSurah, setSelectedSurah] = useState(1);
-  const [selectedVerse, setSelectedVerse] = useState(1);
-  const [currentSurah, setCurrentSurah] = useState<any>(null);
+  // Data state
+  const [allSurahs, setAllSurahs] = useState<Surah[]>([]);
+  const [renderableItems, setRenderableItems] = useState<RenderableItem[]>([]);
+  const [lookupMaps, setLookupMaps] = useState<LookupMaps | null>(null);
+
+  // Position state
+  const [currentSurahNum, setCurrentSurahNum] = useState(1);
+  const [currentVerseNum, setCurrentVerseNum] = useState(1);
+
+  // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [recognitionStatus, setRecognitionStatus] = useState<any>('idle');
+  const [recognitionStatus, setRecognitionStatus] = useState<'idle' | 'listening' | 'stopped'>('idle');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [highlightedWords, setHighlightedWords] = useState<HighlightedWordsType>({});
-  
+  const [highlightedWords, setHighlightedWords] = useState<GlobalHighlightedWords>({});
+
+  // Services (singletons)
   const quranService = QuranDataService.getInstance();
   const speechService = SpeechRecognitionService.getInstance();
-  const quranDisplayRef = useRef<HTMLDivElement>(null);
-  const currentVerseRef = useRef<HTMLDivElement>(null);
-  const scrollManagerRef = useRef<ScrollManager | null>(null);
-  const recognizedTranscriptRef = useRef('');
 
-  const initializeScrollManager = useCallback(() => {
-    if (!currentSurah || !quranDisplayRef.current) {
-      return;
+  // Refs
+  const virtualListRef = useRef<QuranVirtualListHandle>(null);
+  const scrollManagerRef = useRef<GlobalScrollManager | null>(null);
+
+  // Derived state
+  const currentVerseKey = useMemo<GlobalVerseKey | null>(() => {
+    if (currentSurahNum > 0 && currentVerseNum > 0) {
+      return toGlobalKey(currentSurahNum, currentVerseNum);
     }
+    return null;
+  }, [currentSurahNum, currentVerseNum]);
 
-    scrollManagerRef.current = new ScrollManager({
-      container: quranDisplayRef.current,
-      verseCount: currentSurah.verseCount,
-      onVerseChange: (verseNumber) => {
-        handleAutoAdvance(verseNumber);
-      }
+  const currentSurah = useMemo(() => {
+    return allSurahs[currentSurahNum - 1] || null;
+  }, [allSurahs, currentSurahNum]);
+
+  // Initialize GlobalScrollManager once
+  useEffect(() => {
+    scrollManagerRef.current = new GlobalScrollManager({
+      autoAdvance: true,
+      onVerseChange: (surah, verse) => {
+        setCurrentSurahNum(surah);
+        setCurrentVerseNum(verse);
+        setHighlightedWords({});
+      },
+      onScrollToIndex: (index) => {
+        virtualListRef.current?.scrollToIndex(index, 'smooth');
+      },
     });
-
-    scrollManagerRef.current.setCurrentVerse(selectedVerse);
-  }, [currentSurah, selectedVerse]);
-
-  const handleAutoAdvance = useCallback((verseNumber: number) => {
-    setSelectedVerse(verseNumber);
-    scrollManagerRef.current?.setCurrentVerse(verseNumber);
   }, []);
 
-  const handleManualVerseChange = useCallback((verseNumber: number) => {
-    setSelectedVerse(verseNumber);
-    setHighlightedWords({});
-    recognizedTranscriptRef.current = '';
-    scrollManagerRef.current?.setCurrentVerse(verseNumber);
-    
-    if (recognitionStatus === 'listening') {
-      handleStop();
+  // Keep scroll manager in sync with data
+  useEffect(() => {
+    if (scrollManagerRef.current && allSurahs.length > 0) {
+      scrollManagerRef.current.setSurahs(allSurahs);
     }
-  }, [recognitionStatus]);
+  }, [allSurahs]);
 
   useEffect(() => {
-    initializeScrollManager();
-  }, [initializeScrollManager]);
+    if (scrollManagerRef.current && lookupMaps) {
+      scrollManagerRef.current.setLookupMaps(lookupMaps);
+    }
+  }, [lookupMaps]);
 
   useEffect(() => {
     if (scrollManagerRef.current) {
-      scrollManagerRef.current.setCurrentVerse(selectedVerse);
-      scrollManagerRef.current.updateConfig({
-        verseCount: currentSurah?.verseCount || 0
-      });
+      scrollManagerRef.current.setCurrentPosition(currentSurahNum, currentVerseNum);
     }
-  }, [selectedVerse, currentSurah]);
+  }, [currentSurahNum, currentVerseNum]);
 
+  // Load Quran data on mount
   useEffect(() => {
-    async function loadSurahs() {
+    async function loadData() {
       try {
-        const allSurahs = await quranService.getAllSurahs();
-        setSurahs(allSurahs);
-        
-        await loadSurah(1);
+        const surahs = await quranService.getAllSurahs();
+        setAllSurahs(surahs);
+
+        const items = buildRenderableItems(surahs);
+        setRenderableItems(items);
+
+        const maps = buildLookupMaps(items);
+        setLookupMaps(maps);
+
         setLoading(false);
       } catch (err) {
+        console.error('Failed to load Quran data:', err);
         setError('Failed to load Quran data');
         setLoading(false);
       }
     }
 
-    loadSurahs();
+    loadData();
   }, []);
 
+  // Speech recognition
   useEffect(() => {
     speechService.on({
-      onResult: (result: any) => {
-        if (result.transcript && result.transcript.trim().length > 0) {
-          const transcript = result.transcript.trim();
-          
-          const currentVerseIndex = selectedVerse - 1;
-          
-          if (currentSurah && scrollManagerRef.current) {
-            const newMatches = matchSpokenWords(
-              transcript,
-              currentSurah.verses,
-              currentVerseIndex
-            );
-            
-            setHighlightedWords(newMatches);
+      onResult: (result: { transcript: string }) => {
+        if (!result.transcript || result.transcript.trim().length === 0) {
+          return;
+        }
 
-            if (scrollManagerRef.current.checkShouldAdvance(currentSurah.verses, newMatches)) {
-              setTimeout(() => {
-                scrollManagerRef.current?.advanceToNextVerse(currentSurah.verses, newMatches);
-              }, 500);
-            }
+        const transcript = result.transcript.trim();
+        const currentVerseIndex = currentVerseNum - 1;
+
+        if (currentSurah && scrollManagerRef.current) {
+          const localMatches = matchSpokenWords(
+            transcript,
+            currentSurah.verses,
+            currentVerseIndex
+          );
+
+          // Convert local verse indices to global keys
+          const globalMatches: GlobalHighlightedWords = {};
+          for (const [verseIdx, wordSet] of Object.entries(localMatches)) {
+            const verseNumber = Number(verseIdx) + 1;
+            const key = toGlobalKey(currentSurahNum, verseNumber);
+            globalMatches[key] = wordSet as Set<number>;
+          }
+
+          setHighlightedWords(globalMatches);
+
+          if (scrollManagerRef.current.checkShouldAdvance(globalMatches)) {
+            setTimeout(() => {
+              scrollManagerRef.current?.advanceToNextVerse(globalMatches);
+            }, 500);
           }
         }
       },
@@ -119,34 +147,52 @@ export function App() {
       onStart: () => {
         setRecognitionStatus('listening');
         setHighlightedWords({});
-      }
+      },
     });
-  }, [speechService, selectedVerse, currentSurah]);
+  }, [speechService, currentSurahNum, currentVerseNum, currentSurah]);
 
-  useEffect(() => {
-    if (currentVerseRef.current && quranDisplayRef.current) {
-      currentVerseRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [selectedVerse, currentSurah]);
+  // Navigation
+  const navigateToVerse = useCallback(
+    (surah: number, verse: number) => {
+      if (!lookupMaps) return;
 
-  async function loadSurah(surahNumber: number) {
-    try {
-      const surah = await quranService.getSurah(surahNumber);
-      if (surah) {
-        setCurrentSurah(surah);
-        setHighlightedWords({});
-        scrollManagerRef.current?.updateConfig({ verseCount: surah.verseCount });
+      const key = toGlobalKey(surah, verse);
+      const flatIndex = lookupMaps.keyToIndex.get(key);
+
+      if (flatIndex !== undefined) {
+        virtualListRef.current?.scrollToIndex(flatIndex, 'smooth');
       }
-    } catch (err) {
-      console.error('Failed to load surah:', err);
-    }
-  }
 
-  function handleSurahChange(surahNumber: number) {
-    setSelectedSurah(surahNumber);
-    setSelectedVerse(1);
-    loadSurah(surahNumber);
-  }
+      setCurrentSurahNum(surah);
+      setCurrentVerseNum(verse);
+      setHighlightedWords({});
+
+      if (scrollManagerRef.current) {
+        scrollManagerRef.current.setCurrentPosition(surah, verse);
+      }
+    },
+    [lookupMaps]
+  );
+
+  const handleSurahChange = useCallback(
+    (surahNumber: number) => {
+      navigateToVerse(surahNumber, 1);
+      if (recognitionStatus === 'listening') {
+        handleStop();
+      }
+    },
+    [navigateToVerse, recognitionStatus]
+  );
+
+  const handleVerseChange = useCallback(
+    (verseNumber: number) => {
+      navigateToVerse(currentSurahNum, verseNumber);
+      if (recognitionStatus === 'listening') {
+        handleStop();
+      }
+    },
+    [currentSurahNum, navigateToVerse, recognitionStatus]
+  );
 
   function handleStart() {
     try {
@@ -173,17 +219,19 @@ export function App() {
     }
   }
 
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center font-arabic">
+      <div className="h-screen bg-gray-900 flex items-center justify-center font-arabic">
         <div className="text-amber-100 text-xl">Loading Quran data...</div>
       </div>
     );
   }
 
+  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center font-arabic">
+      <div className="h-screen bg-gray-900 flex items-center justify-center font-arabic">
         <div className="bg-red-900 bg-opacity-50 border border-red-600 rounded-lg p-6 text-red-100 max-w-md mx-4">
           {error}
         </div>
@@ -192,7 +240,8 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="h-screen bg-gray-900 flex flex-col">
+      {/* Navigation button - fixed position */}
       <div className="fixed top-4 right-4 z-40">
         <button
           onClick={() => setIsModalOpen(true)}
@@ -205,6 +254,14 @@ export function App() {
         </button>
       </div>
 
+      {/* Current position indicator - fixed position */}
+      <div className="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg">
+        <span className="text-amber-100 text-sm font-medium">
+          {currentSurah?.name} ({currentSurahNum}:{currentVerseNum})
+        </span>
+      </div>
+
+      {/* Recording button - fixed position */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
         <button
           onClick={toggleRecognition}
@@ -227,80 +284,25 @@ export function App() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        <div
-          ref={quranDisplayRef}
-          className="h-full overflow-y-auto px-4 py-20"
-        >
-          <div className="max-w-3xl mx-auto space-y-4">
-            {currentSurah && (
-              <>
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl font-bold text-amber-100 mb-2 font-arabic">
-                    سورة {currentSurah.name}
-                  </h1>
-                  <p className="text-amber-200 text-lg">{currentSurah.nameEn}</p>
-                </div>
-
-                {currentSurah.verses.map((verse: any, index: number) => {
-                  const isCurrentVerse = verse.number === selectedVerse;
-                  const verseHighlights = highlightedWords[index];
-                  
-                  return (
-                    <div
-                      key={verse.number}
-                      ref={isCurrentVerse ? currentVerseRef : null}
-                      data-verse-number={verse.number}
-                      className={`text-right p-6 rounded-lg transition-all duration-300 ${
-                        isCurrentVerse
-                          ? 'bg-amber-100 text-gray-900 scale-105 shadow-xl'
-                          : 'text-gray-500'
-                      }`}
-                    >
-                      <div className="flex gap-4 items-start">
-                        <span className={`text-sm font-bold flex-shrink-0 pt-2 ${
-                          isCurrentVerse ? 'text-amber-700' : 'text-gray-600'
-                        }`}>
-                          ({verse.number})
-                        </span>
-                        <p className={`text-2xl leading-relaxed font-arabic ${
-                          isCurrentVerse ? 'text-gray-900' : ''
-                        }`}>
-                          {verse.words.map((word: any, wordIndex: number) => {
-                            const isHighlighted = verseHighlights?.has(wordIndex);
-                            
-                            return (
-                              <span
-                                key={wordIndex}
-                                className={`inline-block px-1 mx-0.5 rounded transition-all ${
-                                  isHighlighted 
-                                    ? 'bg-amber-500 text-white font-bold scale-110'
-                                    : 'transition-colors'
-                                }`}
-                              >
-                                {word.uthmani}
-                              </span>
-                            );
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        </div>
+      {/* Virtual scrolling Quran display - flex child with min-h-0 */}
+      <div className="flex-1 min-h-0">
+        <QuranVirtualList
+          ref={virtualListRef}
+          items={renderableItems}
+          currentVerseKey={currentVerseKey}
+          highlightedWords={highlightedWords}
+        />
       </div>
 
+      {/* Navigation modal */}
       <NavigationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        surahs={surahs}
-        selectedSurah={selectedSurah}
-        selectedVerse={selectedVerse}
+        surahs={allSurahs}
+        selectedSurah={currentSurahNum}
+        selectedVerse={currentVerseNum}
         onSurahChange={handleSurahChange}
-        onVerseChange={handleManualVerseChange}
+        onVerseChange={handleVerseChange}
       />
     </div>
   );
