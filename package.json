@@ -24,6 +24,6 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
-    "svelte-virtual-scroll-list": "^1.2.0"
+    "@tutorlatin/svelte-tiny-virtual-list": "^3.0.18"
   }
 }

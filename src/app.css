@@ -1,6 +1,18 @@
 @import 'tailwindcss';
 
-/* Arabic font - using system Arabic fonts with fallbacks */
+/*
+ * Tailwind v4 Theme Configuration
+ * Defines custom design tokens and utilities
+ */
+@theme {
+	/* Custom font family for Arabic text */
+	--font-arabic: 'Amiri', 'Traditional Arabic', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+
+	/* Custom animation for recording pulse */
+	--animate-pulse-recording: pulse-recording 1.5s infinite;
+}
+
+/* Arabic font - self-hosted from Google Fonts for performance */
 @font-face {
 	font-family: 'Amiri';
 	font-style: normal;
@@ -19,30 +31,10 @@
 	unicode-range: U+0600-06FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE80-FEFC;
 }
 
-/* Custom utilities */
-.font-arabic {
-	font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', 'Noto Naskh Arabic', serif;
-	line-height: 2;
-}
-
-/* Hide scrollbar but allow scrolling */
-.scrollbar-hide {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-	display: none;
-}
-
-/* Smooth transitions for highlighted words */
-.word-highlight {
-	transition: all 0.2s ease-out;
-}
-
-/* Recording pulse animation */
+/* Recording pulse keyframes */
 @keyframes pulse-recording {
-	0%, 100% {
+	0%,
+	100% {
 		box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
 	}
 	50% {
@@ -50,13 +42,14 @@
 	}
 }
 
-.animate-pulse-recording {
-	animation: pulse-recording 1.5s infinite;
+/* Custom utilities using Tailwind v4 @utility directive */
+@utility font-arabic {
+	font-family: var(--font-arabic);
+	line-height: 2;
 }
 
-/* Safe area insets for mobile */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-	.safe-area-bottom {
+@utility safe-area-bottom {
+	@supports (padding-bottom: env(safe-area-inset-bottom)) {
 		padding-bottom: env(safe-area-inset-bottom);
 	}
 }

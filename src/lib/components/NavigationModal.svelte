@@ -70,7 +70,7 @@
 
 {#if isOpen}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+		class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
 		role="dialog"
