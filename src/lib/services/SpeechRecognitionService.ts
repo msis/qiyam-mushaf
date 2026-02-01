@@ -1,0 +1,193 @@
+import type {
+	SpeechRecognitionCallbacks,
+	SpeechRecognitionConfig,
+	RecognitionStatus,
+	SpeechRecognitionResult
+} from '$lib/types';
+import { LANGUAGE_CODE } from '$lib/utils/constants';
+
+// Type definitions for Web Speech API
+// Using 'any' for the recognition instance to avoid conflicts with lib.dom.d.ts
+type SpeechRecognitionInstance = {
+	lang: string;
+	continuous: boolean;
+	interimResults: boolean;
+	start(): void;
+	stop(): void;
+	abort(): void;
+	onresult: ((event: SpeechRecognitionEventType) => void) | null;
+	onerror: ((event: SpeechRecognitionErrorEventType) => void) | null;
+	onend: (() => void) | null;
+	onstart: (() => void) | null;
+};
+
+interface SpeechRecognitionEventType {
+	resultIndex: number;
+	results: {
+		length: number;
+		[index: number]: {
+			isFinal: boolean;
+			[index: number]: {
+				transcript: string;
+				confidence: number;
+			};
+		};
+	};
+}
+
+interface SpeechRecognitionErrorEventType {
+	error: string;
+}
+
+export class SpeechRecognitionService {
+	private static instance: SpeechRecognitionService;
+	private recognition: SpeechRecognitionInstance | null = null;
+	private isListening = false;
+	private callbacks: SpeechRecognitionCallbacks = {};
+
+	private constructor() {
+		this.initializeRecognition();
+	}
+
+	static getInstance(): SpeechRecognitionService {
+		if (!SpeechRecognitionService.instance) {
+			SpeechRecognitionService.instance = new SpeechRecognitionService();
+		}
+		return SpeechRecognitionService.instance;
+	}
+
+	// For testing: reset the singleton instance
+	static resetInstance(): void {
+		SpeechRecognitionService.instance = undefined as unknown as SpeechRecognitionService;
+	}
+
+	private initializeRecognition(): void {
+		if (typeof window === 'undefined') return;
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+		if (!SpeechRecognitionClass) {
+			console.warn('Speech recognition is not supported in this browser');
+			return;
+		}
+
+		this.recognition = new SpeechRecognitionClass() as SpeechRecognitionInstance;
+		this.setupEventHandlers();
+	}
+
+	private setupEventHandlers(): void {
+		if (!this.recognition) return;
+
+		this.recognition.onresult = (event: SpeechRecognitionEventType) => {
+			for (let i = event.resultIndex; i < event.results.length; i++) {
+				const result: SpeechRecognitionResult = {
+					transcript: event.results[i][0].transcript,
+					confidence: event.results[i][0].confidence,
+					isFinal: event.results[i].isFinal
+				};
+				this.callbacks.onResult?.(result);
+			}
+		};
+
+		this.recognition.onerror = (event: SpeechRecognitionErrorEventType) => {
+			this.isListening = false;
+
+			let errorMessage = 'Speech recognition error';
+
+			switch (event.error) {
+				case 'no-speech':
+					errorMessage = 'No speech detected';
+					break;
+				case 'audio-capture':
+					errorMessage = 'No microphone detected';
+					break;
+				case 'not-allowed':
+					errorMessage = 'Microphone access denied';
+					break;
+				case 'network':
+					errorMessage = 'Network error';
+					break;
+				case 'aborted':
+					errorMessage = 'Speech recognition aborted';
+					break;
+				default:
+					errorMessage = event.error || 'Unknown error';
+			}
+
+			const error = new Error(errorMessage);
+			this.callbacks.onError?.(error);
+		};
+
+		this.recognition.onend = () => {
+			this.isListening = false;
+			this.callbacks.onEnd?.();
+		};
+
+		this.recognition.onstart = () => {
+			this.isListening = true;
+			this.callbacks.onStart?.();
+		};
+	}
+
+	start(config?: Partial<SpeechRecognitionConfig>): void {
+		if (this.isListening) {
+			return;
+		}
+
+		if (!this.recognition) {
+			this.initializeRecognition();
+		}
+
+		if (!this.recognition) {
+			this.callbacks.onError?.(new Error('Speech recognition not available'));
+			return;
+		}
+
+		const defaultConfig: SpeechRecognitionConfig = {
+			language: LANGUAGE_CODE,
+			continuous: true,
+			interimResults: true
+		};
+
+		const finalConfig = { ...defaultConfig, ...config };
+
+		this.recognition.lang = finalConfig.language;
+		this.recognition.continuous = finalConfig.continuous;
+		this.recognition.interimResults = finalConfig.interimResults;
+
+		this.recognition.start();
+	}
+
+	stop(): void {
+		if (!this.recognition || !this.isListening) {
+			return;
+		}
+
+		this.recognition.stop();
+	}
+
+	getStatus(): RecognitionStatus {
+		if (!this.recognition) {
+			return 'error';
+		}
+		if (this.isListening) {
+			return 'listening';
+		}
+		return 'idle';
+	}
+
+	on(callbacks: SpeechRecognitionCallbacks): void {
+		this.callbacks = { ...this.callbacks, ...callbacks };
+	}
+
+	off(callback: keyof SpeechRecognitionCallbacks): void {
+		delete this.callbacks[callback];
+	}
+
+	isSupported(): boolean {
+		if (typeof window === 'undefined') return false;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+	}
+}

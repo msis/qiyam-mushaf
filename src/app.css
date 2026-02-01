@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+
+/* Arabic font - using system Arabic fonts with fallbacks */
+@font-face {
+	font-family: 'Amiri';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('https://fonts.gstatic.com/s/amiri/v27/J7aRnpd8CGxBHqUpvrIw74NL.woff2') format('woff2');
+	unicode-range: U+0600-06FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE80-FEFC;
+}
+
+@font-face {
+	font-family: 'Amiri';
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url('https://fonts.gstatic.com/s/amiri/v27/J7acnpd8CGxBHp2VkZYlWI_lLQ.woff2') format('woff2');
+	unicode-range: U+0600-06FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE80-FEFC;
+}
+
+/* Custom utilities */
+.font-arabic {
+	font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+	line-height: 2;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+
+/* Smooth transitions for highlighted words */
+.word-highlight {
+	transition: all 0.2s ease-out;
+}
+
+/* Recording pulse animation */
+@keyframes pulse-recording {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+	}
+	50% {
+		box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+	}
+}
+
+.animate-pulse-recording {
+	animation: pulse-recording 1.5s infinite;
+}
+
+/* Safe area insets for mobile */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+	.safe-area-bottom {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+}
