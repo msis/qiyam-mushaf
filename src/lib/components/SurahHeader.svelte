@@ -8,7 +8,7 @@
   let { surah }: Props = $props();
 </script>
 
-<div class="text-center py-8 mb-4">
+<div class="text-center py-4">
   <h1 class="text-4xl font-bold text-amber-100 mb-2 font-arabic">
     سورة {surah.name}
   </h1>

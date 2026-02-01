@@ -14,7 +14,7 @@
 
 <div
 	data-verse-key={verseKey}
-	class="px-4 py-1 rounded-lg transition-all duration-300 {isCurrentVerse
+	class="px-4 py-2 rounded-lg transition-all duration-300 {isCurrentVerse
 		? 'bg-amber-100 text-gray-900 shadow-xl'
 		: 'text-gray-400'}"
 >

@@ -27,17 +27,18 @@
 
 		for (const item of items) {
 			if (item.type === 'surah-header') {
-				heights.push(100);
+				// SurahHeader: py-4 (32px) + h1 text-4xl (~40px) + mb-2 + p text-lg (~28px) + p text-sm (~18px)
+				heights.push(120);
 			} else if (item.type === 'bismillah') {
-				heights.push(70);
+				// Bismillah: py-3 (24px) + text-2xl (~32px)
+				heights.push(58);
 			} else {
-				// Verse height calculation (compact layout):
-				// - VerseRow: px-4 py-1 (8px vertical padding)
+				// Verse height calculation:
+				// - VerseRow: py-2 (16px vertical padding)
 				// - Text: text-2xl (24px) with leading-relaxed (~1.625) = ~39px per line
-				// - Wrapper: py-2 (16px)
-				// - Estimate ~7 words per line on average (inline verse number saves space)
+				// - Estimate ~7 words per line on average
 				const wordCount = item.verse?.words.length ?? 0;
-				const baseHeight = 32; // Fixed padding (8px + 16px + 8px buffer)
+				const baseHeight = 20; // py-2 (16px) + small buffer
 				const linesOfText = Math.ceil((wordCount + 1) / 7); // +1 for inline verse number
 				const textHeight = linesOfText * 39;
 				heights.push(baseHeight + textHeight);
@@ -74,7 +75,7 @@
 					<!-- Bottom spacer for record button -->
 				{:else}
 					{@const currentItem = items[index - 1]}
-					<div class="max-w-3xl mx-auto px-4 py-2">
+					<div class="max-w-3xl mx-auto px-4">
 						{#if currentItem.type === 'surah-header' && currentItem.surahData}
 							<SurahHeader surah={currentItem.surahData} />
 						{:else if currentItem.type === 'bismillah'}
