@@ -14,23 +14,20 @@
 
 <div
 	data-verse-key={verseKey}
-	class="p-4 my-2 rounded-lg transition-all duration-300 {isCurrentVerse
+	class="px-4 py-1 rounded-lg transition-all duration-300 {isCurrentVerse
 		? 'bg-amber-100 text-gray-900 shadow-xl'
 		: 'text-gray-400'}"
 >
-	<!-- Verse number badge -->
-	<div class="flex justify-center mb-2">
+	<!-- Arabic text - centered, RTL, with verse number on the right -->
+	<p class="text-2xl leading-relaxed font-arabic text-center" dir="rtl">
+		<!-- Verse number first in markup = right side visually in RTL -->
 		<span
-			class="text-xs font-bold px-2 py-1 rounded {isCurrentVerse
+			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ml-2 align-middle {isCurrentVerse
 				? 'bg-amber-600 text-white'
 				: 'bg-gray-700 text-gray-400'}"
 		>
 			{surahNumber}:{verse.number}
 		</span>
-	</div>
-
-	<!-- Arabic text - centered, RTL -->
-	<p class="text-2xl leading-loose font-arabic text-center" dir="rtl">
 		{#each verse.words as word, wordIndex (wordIndex)}
 			{@const isHighlighted = highlightedWordIndices?.has(wordIndex)}
 			<span

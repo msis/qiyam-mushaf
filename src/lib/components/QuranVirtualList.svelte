@@ -31,15 +31,15 @@
 			} else if (item.type === 'bismillah') {
 				heights.push(70);
 			} else {
-				// Verse height calculation:
-				// - VerseRow: p-4 (32px) + my-2 (16px) + badge (~36px) = ~84px fixed
-				// - Text: text-2xl (24px) with leading-loose (line-height: 2) = 48px per line
+				// Verse height calculation (compact layout):
+				// - VerseRow: px-4 py-1 (8px vertical padding)
+				// - Text: text-2xl (24px) with leading-relaxed (~1.625) = ~39px per line
 				// - Wrapper: py-2 (16px)
-				// - Estimate ~6 words per line on average
+				// - Estimate ~7 words per line on average (inline verse number saves space)
 				const wordCount = item.verse?.words.length ?? 0;
-				const baseHeight = 120; // Fixed elements
-				const linesOfText = Math.ceil(wordCount / 6);
-				const textHeight = linesOfText * 48;
+				const baseHeight = 32; // Fixed padding (8px + 16px + 8px buffer)
+				const linesOfText = Math.ceil((wordCount + 1) / 7); // +1 for inline verse number
+				const textHeight = linesOfText * 39;
 				heights.push(baseHeight + textHeight);
 			}
 		}
