@@ -9,9 +9,10 @@
 		items: RenderableItem[];
 		currentVerseKey: GlobalVerseKey | null;
 		highlightedWords: GlobalHighlightedWords;
+		onVerseClick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { items, currentVerseKey, highlightedWords }: Props = $props();
+	let { items, currentVerseKey, highlightedWords, onVerseClick }: Props = $props();
 
 	// Scroll container element
 	let scrollElement: HTMLDivElement | undefined = $state();
@@ -50,7 +51,7 @@
 	}
 
 	export function scrollToIndex(index: number): void {
-		$virtualizer.scrollToIndex(index + 1, { align: 'start' });
+		$virtualizer.scrollToIndex(index + 1, { align: 'center' });
 	}
 </script>
 
@@ -91,6 +92,7 @@
 									surahNumber={item.surahNumber}
 									isCurrentVerse={currentVerseKey === item.verseKey}
 									highlightedWordIndices={highlightedWords[item.verseKey]}
+									onclick={onVerseClick}
 								/>
 							</div>
 						{/if}

@@ -7,16 +7,25 @@
 		surahNumber: number;
 		isCurrentVerse: boolean;
 		highlightedWordIndices?: Set<number>;
+		onclick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedWordIndices }: Props = $props();
+	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedWordIndices, onclick }: Props = $props();
+
+	function handleClick() {
+		onclick?.(surahNumber, verse.number);
+	}
 </script>
 
 <div
 	data-verse-key={verseKey}
-	class="px-4 py-2 rounded-lg transition-all duration-300 {isCurrentVerse
+	class="px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer {isCurrentVerse
 		? 'bg-amber-100 text-gray-900 shadow-xl'
-		: 'text-gray-400'}"
+		: 'text-gray-400 hover:bg-gray-800/50'}"
+	onclick={handleClick}
+	onkeydown={(e) => e.key === 'Enter' && handleClick()}
+	role="button"
+	tabindex="0"
 >
 	<!-- Arabic text - centered, RTL, with verse number on the right -->
 	<p class="text-2xl leading-relaxed font-arabic text-center" dir="rtl">

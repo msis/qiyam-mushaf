@@ -104,14 +104,21 @@
 	});
 
 	// Navigation handlers
-	function navigateToVerse(surah: number, verse: number): void {
+	interface NavigateOptions {
+		scroll?: boolean;
+		stopListening?: boolean;
+	}
+
+	function navigateToVerse(surah: number, verse: number, options: NavigateOptions = {}): void {
+		const { scroll = true, stopListening = true } = options;
+
 		if (!appState.lookupMaps) return;
 
 		const key = toGlobalKey(surah, verse);
 		const flatIndex = appState.lookupMaps.keyToIndex.get(key);
 
-		// Stop listening if active
-		if (speechStore.isListening) {
+		// Stop listening if active and requested
+		if (stopListening && speechStore.isListening) {
 			speechStore.stop();
 		}
 
@@ -119,10 +126,14 @@
 		appState.setPosition(surah, verse);
 		scrollStore.setCurrentPosition(surah, verse);
 
-		// Then scroll to the verse
-		if (flatIndex !== undefined && virtualListRef) {
+		// Then scroll to the verse (if requested)
+		if (scroll && flatIndex !== undefined && virtualListRef) {
 			virtualListRef.scrollToIndex(flatIndex);
 		}
+	}
+
+	function handleVerseClick(surah: number, verse: number): void {
+		navigateToVerse(surah, verse, { scroll: false, stopListening: false });
 	}
 
 	function handleSurahChange(surahNumber: number): void {
@@ -214,6 +225,7 @@
 				items={appState.renderableItems}
 				currentVerseKey={appState.currentVerseKey}
 				highlightedWords={appState.highlightedWords}
+				onVerseClick={handleVerseClick}
 			/>
 		</div>
 
