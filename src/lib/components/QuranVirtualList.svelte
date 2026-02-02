@@ -1,5 +1,5 @@
 <script lang="ts">
-	import VirtualList from '@tutorlatin/svelte-tiny-virtual-list';
+	import { VList, type VListHandle } from 'virtua/svelte';
 	import type { RenderableItem, GlobalVerseKey, GlobalHighlightedWords } from '$lib/types';
 	import Bismillah from './Bismillah.svelte';
 	import SurahHeader from './SurahHeader.svelte';
@@ -13,87 +13,57 @@
 
 	let { items, currentVerseKey, highlightedWords }: Props = $props();
 
-	// Reactive scroll target - library scrolls when this changes
-	let scrollTargetIndex = $state(-1);
+	// Reference to VList for imperative scrolling
+	let vlistRef: VListHandle | undefined = $state();
 
-	// Spacer heights for top (fixed header) and bottom (record button)
-	const TOP_SPACER = 70;
-	const BOTTOM_SPACER = 100;
+	// Build data array with spacers included
+	type DataItem =
+		| { type: 'spacer'; height: number }
+		| RenderableItem;
 
-	// Calculate height for each item based on its type and content
-	// Include spacers at start and end for fixed UI overlays
-	const itemHeights = $derived.by(() => {
-		const heights: number[] = [TOP_SPACER]; // First item is top spacer
-
-		for (const item of items) {
-			if (item.type === 'surah-header') {
-				// SurahHeader: py-4 (32px) + h1 text-4xl (~40px) + mb-2 + p text-lg (~28px) + p text-sm (~18px)
-				heights.push(120);
-			} else if (item.type === 'bismillah') {
-				// Bismillah: py-3 (24px) + text-2xl (~32px)
-				heights.push(58);
-			} else {
-				// Verse height calculation:
-				// - VerseRow: py-2 (16px vertical padding)
-				// - Text: text-2xl (24px) with leading-relaxed (~1.625) = ~39px per line
-				// - Estimate ~7 words per line on average
-				const wordCount = item.verse?.words.length ?? 0;
-				const baseHeight = 20; // py-2 (16px) + small buffer
-				const linesOfText = Math.ceil((wordCount + 1) / 7); // +1 for inline verse number
-				const textHeight = linesOfText * 39;
-				heights.push(baseHeight + textHeight);
-			}
-		}
-
-		heights.push(BOTTOM_SPACER); // Last item is bottom spacer
-		return heights;
+	const data = $derived.by((): DataItem[] => {
+		const result: DataItem[] = [{ type: 'spacer', height: 70 }]; // Top spacer for fixed header
+		result.push(...items);
+		result.push({ type: 'spacer', height: 100 }); // Bottom spacer for record button
+		return result;
 	});
 
-	// Total item count includes the two spacers
-	const totalItemCount = $derived(items.length + 2);
+	// Gap between items (in pixels)
+	const ITEM_GAP = 8;
 
 	export function scrollToIndex(index: number): void {
 		// Offset by 1 to account for top spacer
-		scrollTargetIndex = index + 1;
+		vlistRef?.scrollToIndex(index + 1, { align: 'start' });
 	}
 </script>
 
 <div class="virtual-container">
-	<VirtualList
-		height="100%"
-		width="100%"
-		itemCount={totalItemCount}
-		itemSize={itemHeights}
-		scrollToIndex={scrollTargetIndex}
-		scrollToAlignment="start"
-	>
-		{#snippet item({ style, index })}
-			<div {style} class="item-wrapper">
-				{#if index === 0}
-					<!-- Top spacer for fixed header -->
-				{:else if index === totalItemCount - 1}
-					<!-- Bottom spacer for record button -->
-				{:else}
-					{@const currentItem = items[index - 1]}
-					<div class="max-w-3xl mx-auto px-4">
-						{#if currentItem.type === 'surah-header' && currentItem.surahData}
-							<SurahHeader surah={currentItem.surahData} />
-						{:else if currentItem.type === 'bismillah'}
-							<Bismillah />
-						{:else if currentItem.type === 'verse' && currentItem.verse && currentItem.verseKey}
-							<VerseRow
-								verse={currentItem.verse}
-								verseKey={currentItem.verseKey}
-								surahNumber={currentItem.surahNumber}
-								isCurrentVerse={currentVerseKey === currentItem.verseKey}
-								highlightedWordIndices={highlightedWords[currentItem.verseKey]}
-							/>
-						{/if}
-					</div>
-				{/if}
-			</div>
+	<VList bind:this={vlistRef} {data} style="height: 100%;" getKey={(_, i) => i}>
+		{#snippet children(item, index)}
+			{#if item.type === 'spacer'}
+				<!-- Spacer for fixed UI elements -->
+				<div style="height: {item.height}px;"></div>
+			{:else if item.type === 'surah-header' && item.surahData}
+				<div class="max-w-3xl mx-auto px-4" style="margin-bottom: {ITEM_GAP}px;">
+					<SurahHeader surah={item.surahData} />
+				</div>
+			{:else if item.type === 'bismillah'}
+				<div class="max-w-3xl mx-auto px-4" style="margin-bottom: {ITEM_GAP}px;">
+					<Bismillah />
+				</div>
+			{:else if item.type === 'verse' && item.verse && item.verseKey}
+				<div class="max-w-3xl mx-auto px-4" style="margin-bottom: {ITEM_GAP}px;">
+					<VerseRow
+						verse={item.verse}
+						verseKey={item.verseKey}
+						surahNumber={item.surahNumber}
+						isCurrentVerse={currentVerseKey === item.verseKey}
+						highlightedWordIndices={highlightedWords[item.verseKey]}
+					/>
+				</div>
+			{/if}
 		{/snippet}
-	</VirtualList>
+	</VList>
 </div>
 
 <style>
@@ -103,31 +73,27 @@
 	}
 
 	/* Firefox scrollbar styling */
-	.virtual-container :global(.virtual-list-wrapper) {
+	.virtual-container :global([data-virtua]) {
 		scrollbar-width: thin;
 		scrollbar-color: #d97706 #1f2937;
 	}
 
 	/* WebKit scrollbar styling (Chrome, Safari, Edge) */
-	.virtual-container :global(.virtual-list-wrapper::-webkit-scrollbar) {
+	.virtual-container :global([data-virtua]::-webkit-scrollbar) {
 		width: 8px;
 	}
 
-	.virtual-container :global(.virtual-list-wrapper::-webkit-scrollbar-track) {
+	.virtual-container :global([data-virtua]::-webkit-scrollbar-track) {
 		background: #1f2937;
 		border-radius: 4px;
 	}
 
-	.virtual-container :global(.virtual-list-wrapper::-webkit-scrollbar-thumb) {
+	.virtual-container :global([data-virtua]::-webkit-scrollbar-thumb) {
 		background: #d97706;
 		border-radius: 4px;
 	}
 
-	.virtual-container :global(.virtual-list-wrapper::-webkit-scrollbar-thumb:hover) {
+	.virtual-container :global([data-virtua]::-webkit-scrollbar-thumb:hover) {
 		background: #b45309;
-	}
-
-	.item-wrapper {
-		box-sizing: border-box;
 	}
 </style>

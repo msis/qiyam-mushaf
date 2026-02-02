@@ -63,6 +63,11 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 - Event-based callbacks: `onResult`, `onError`, `onEnd`, `onStart`
 - Handles continuous recognition with interim results
 
+**ScrollManager** (`src/services/ScrollManager.ts`)
+
+- Manages auto-scrolling and verse advancement
+- Tracks word completion percentage to trigger next verse
+
 ### Word Matching Algorithm
 
 `src/utils/wordMatcher.ts` handles Arabic speech-to-text matching:

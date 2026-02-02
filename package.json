@@ -1,16 +1,6 @@
 {
   "name": "quran-teleprompter",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "vitest"
-  },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.8",
     "@sveltejs/kit": "^2.15.2",
@@ -23,7 +13,17 @@
     "vite": "^6.0.7",
     "vitest": "^3.0.0"
   },
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest"
+  },
+  "type": "module",
   "dependencies": {
-    "@tutorlatin/svelte-tiny-virtual-list": "^3.0.18"
+    "virtua": "^0.48.5"
   }
 }
