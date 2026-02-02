@@ -61,6 +61,7 @@ function normalizeArabicWord(word: string): string {
 		.replace(/[ة]/g, 'ه')
 		.replace(/[ًٌٍَُُِْ]/g, '')
 		.replace(/[\u064B-\u065F]/g, '')
+		.replace(/[\u06D6-\u06ED]/g, '')
 		.toLowerCase()
 		.trim();
 }
