@@ -1,4 +1,5 @@
 import type { Verse } from '$lib/types';
+import { SIMILARITY_THRESHOLD } from './constants';
 
 export interface MatchedWords {
 	[verseIndex: number]: Set<number>;
@@ -7,8 +8,7 @@ export interface MatchedWords {
 export function matchSpokenWords(
 	transcript: string,
 	verses: Verse[],
-	currentVerseIndex: number,
-	_previousMatches?: MatchedWords
+	currentVerseIndex: number
 ): MatchedWords {
 	const matches: MatchedWords = {};
 
@@ -74,12 +74,7 @@ function wordsMatch(spoken: string, quran: string): boolean {
 		return true;
 	}
 
-	const similarity = calculateSimilarity(spoken, quran);
-	if (similarity > 0.7) {
-		return true;
-	}
-
-	return false;
+	return calculateSimilarity(spoken, quran) > SIMILARITY_THRESHOLD;
 }
 
 function calculateSimilarity(word1: string, word2: string): number {

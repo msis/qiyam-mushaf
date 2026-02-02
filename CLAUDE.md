@@ -26,7 +26,7 @@ After completing the code, ask the user if they want a playground link. Only cal
 
 ## Project Overview
 
-Quran Teleprompter - A React web app that displays Quran text and uses speech recognition to highlight words as the user reads aloud. Auto-advances verses when all words are matched.
+Quran Teleprompter - A SvelteKit 5 web app that displays Quran text and uses speech recognition to highlight words as the user reads aloud. Auto-advances verses when all words are matched.
 
 ## Commands
 
@@ -52,12 +52,12 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 
 ### Key Services (Singletons)
 
-**QuranDataService** (`src/services/QuranDataService.ts`)
+**QuranDataService** (`src/lib/services/QuranDataService.ts`)
 
-- Fetches and caches Quran data in localStorage
+- Fetches and caches Quran data in IndexedDB
 - Provides `getSurah()`, `getVerse()`, `getAllSurahs()`
 
-**SpeechRecognitionService** (`src/services/SpeechRecognitionService.ts`)
+**SpeechRecognitionService** (`src/lib/services/SpeechRecognitionService.ts`)
 
 - Wraps Web Speech API with Arabic language (`ar-SA`)
 - Event-based callbacks: `onResult`, `onError`, `onEnd`, `onStart`
@@ -65,39 +65,32 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 
 ### Word Matching Algorithm
 
-`src/utils/wordMatcher.ts` handles Arabic speech-to-text matching:
+`src/lib/utils/wordMatcher.ts` handles Arabic speech-to-text matching:
 
 1. Normalizes Arabic text (removes diacritics, standardizes hamza/alif variants)
-2. Uses Levenshtein distance with 70% similarity threshold
+2. Uses Levenshtein distance with 70% similarity threshold (`SIMILARITY_THRESHOLD`)
 3. Matches words sequentially; stops at first non-match to ensure order
 
 ### Data Flow
 
 1. User speaks → SpeechRecognitionService emits transcript
-2. App.tsx passes transcript to `matchSpokenWords()` with current verse
-3. Matched word indices stored in `highlightedWords` state (verseIndex → Set of wordIndices)
-4. When all words matched, ScrollManager triggers `advanceToNextVerse()`
-
-### Server Entry Point
-
-`src/index.ts` - Bun server that:
-
-- Serves static JSON files from `/data/*`
-- Uses HTML bundler mode with HMR in development
-- Falls back to `index.html` for SPA routing
+2. `+page.svelte` passes transcript to `matchSpokenWords()` with current verse
+3. Matched word indices stored in `highlightedWords` state (GlobalVerseKey → Set of wordIndices)
+4. When all words matched, ScrollStore triggers `advanceToNextVerse()`
 
 ## Type Definitions
 
-All types in `src/types/index.ts`:
+All types in `src/lib/types/index.ts`:
 
 - `Surah`, `Verse`, `Word` - Core data structures
 - `SpeechRecognitionResult`, `SpeechRecognitionCallbacks` - Speech API types
-- `HighlightedWords` - Map of verseIndex to Set of highlighted word indices
+- `GlobalHighlightedWords` - Map of GlobalVerseKey to Set of highlighted word indices
+- `RenderableItem`, `LookupMaps` - Virtual scrolling support types
 
 ## Constants
 
-`src/utils/constants.ts` contains:
+`src/lib/utils/constants.ts` contains:
 
 - `SURAH_NAMES` - Array of all 114 surahs with Arabic/English names and verse counts
 - `LANGUAGE_CODE` - Arabic locale for speech recognition (`ar-SA`)
-- `STORAGE_KEY` - localStorage key for cached Quran data
+- `DB_NAME`, `DB_VERSION`, `STORE_NAME`, `CACHE_KEY` - IndexedDB configuration

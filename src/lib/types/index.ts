@@ -19,14 +19,6 @@ export interface Surah {
 	verseCount: number;
 }
 
-export interface QuranUthmaniData {
-	[key: string]: string[];
-}
-
-export interface QuranSimpleData {
-	[key: string]: string[];
-}
-
 export interface QuranData {
 	surahs: Surah[];
 }
@@ -55,18 +47,6 @@ export interface SpeechRecognitionCallbacks {
 	onError?: (error: Error) => void;
 	onEnd?: () => void;
 	onStart?: () => void;
-}
-
-export interface HighlightedWords {
-	[verseIndex: number]: Set<number>;
-}
-
-export interface ScrollManagerConfig {
-	container?: HTMLElement;
-	verseCount: number;
-	onVerseChange?: (verseNumber: number) => void;
-	autoAdvance?: boolean;
-	verseOffset?: number;
 }
 
 // Global addressing types for full Quran continuous scroll

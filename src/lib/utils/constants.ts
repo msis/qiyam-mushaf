@@ -123,3 +123,6 @@ export const DB_NAME = 'quran-teleprompter';
 export const DB_VERSION = 1;
 export const STORE_NAME = 'cache';
 export const CACHE_KEY = 'quran-data';
+
+// Word matching configuration
+export const SIMILARITY_THRESHOLD = 0.7; // Minimum similarity ratio (0-1) for Levenshtein matching
