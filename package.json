@@ -24,6 +24,6 @@
   },
   "type": "module",
   "dependencies": {
-    "virtua": "^0.48.5"
+    "@tanstack/svelte-virtual": "^3.13.18"
   }
 }
