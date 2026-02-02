@@ -39,7 +39,7 @@
 
 <div class="virtual-container">
 	<VList bind:this={vlistRef} {data} style="height: 100%;" getKey={(_, i) => i}>
-		{#snippet children(item, index)}
+		{#snippet children(item, _index)}
 			{#if item.type === 'spacer'}
 				<!-- Spacer for fixed UI elements -->
 				<div style="height: {item.height}px;"></div>
@@ -70,30 +70,5 @@
 	.virtual-container {
 		height: 100%;
 		width: 100%;
-	}
-
-	/* Firefox scrollbar styling */
-	.virtual-container :global([data-virtua]) {
-		scrollbar-width: thin;
-		scrollbar-color: #d97706 #1f2937;
-	}
-
-	/* WebKit scrollbar styling (Chrome, Safari, Edge) */
-	.virtual-container :global([data-virtua]::-webkit-scrollbar) {
-		width: 8px;
-	}
-
-	.virtual-container :global([data-virtua]::-webkit-scrollbar-track) {
-		background: #1f2937;
-		border-radius: 4px;
-	}
-
-	.virtual-container :global([data-virtua]::-webkit-scrollbar-thumb) {
-		background: #d97706;
-		border-radius: 4px;
-	}
-
-	.virtual-container :global([data-virtua]::-webkit-scrollbar-thumb:hover) {
-		background: #b45309;
 	}
 </style>
