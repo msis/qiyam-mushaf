@@ -70,7 +70,7 @@ export class GlobalScrollManager {
 			return false;
 		}
 
-		const totalWords = verse.words.length;
+		const totalWords = verse.words.filter((w) => w.simple.length > 0).length;
 		const highlightedCount = verseHighlights.size;
 
 		return highlightedCount >= totalWords;
