@@ -1,5 +1,6 @@
 import type { QuranRawData, QuranData, Surah, Verse, Word } from '$lib/types';
 import { SURAH_NAMES } from './constants';
+import { normalizeArabicWord } from './wordMatcher';
 
 export function processQuranData(rawData: QuranRawData): QuranData {
 	const surahs: Surah[] = [];
@@ -17,7 +18,8 @@ export function processQuranData(rawData: QuranRawData): QuranData {
 				number: verseIndex + 1,
 				uthmani: uthmaniText,
 				simple: simpleText,
-				words
+				words,
+				simpleWordCount: words.filter((w) => w.simple.length > 0).length
 			};
 		});
 
@@ -41,10 +43,11 @@ function splitIntoWords(uthmaniText: string, simpleText: string): Word[] {
 	const maxLength = Math.max(uthmaniWords.length, simpleWords.length);
 
 	for (let i = 0; i < maxLength; i++) {
+		const simple = simpleWords[i] || '';
 		words.push({
 			uthmani: uthmaniWords[i] || '',
-			simple: simpleWords[i] || '',
-			highlighted: false
+			simple,
+			normalizedSimple: normalizeArabicWord(simple)
 		});
 	}
 
@@ -52,9 +55,9 @@ function splitIntoWords(uthmaniText: string, simpleText: string): Word[] {
 }
 
 export function findSurahByNumber(surahNumber: number, data: QuranData): Surah | undefined {
-	return data.surahs.find((surah) => surah.number === surahNumber);
+	return data.surahs[surahNumber - 1];
 }
 
 export function findVerseByNumber(surah: Surah, verseNumber: number): Verse | undefined {
-	return surah.verses.find((verse) => verse.number === verseNumber);
+	return surah.verses[verseNumber - 1];
 }

@@ -77,11 +77,11 @@
 						{#if item.type === 'spacer'}
 							<div style="height: {item.height}px;"></div>
 						{:else if item.type === 'surah-header' && item.surahData}
-							<div class="max-w-3xl mx-auto px-4 pb-{ITEM_GAP}">
+							<div class="max-w-3xl mx-auto px-4" style="padding-bottom: {ITEM_GAP}px;">
 								<SurahHeader surah={item.surahData} />
 							</div>
 						{:else if item.type === 'bismillah'}
-							<div class="max-w-3xl mx-auto px-4 pb-{ITEM_GAP}">
+							<div class="max-w-3xl mx-auto px-4" style="padding-bottom: {ITEM_GAP}px;">
 								<Bismillah />
 							</div>
 						{:else if item.type === 'verse' && item.verse && item.verseKey}

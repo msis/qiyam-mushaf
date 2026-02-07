@@ -136,12 +136,8 @@
 		navigateToVerse(surah, verse, { scroll: false, stopListening: false });
 	}
 
-	function handleSurahChange(surahNumber: number): void {
-		navigateToVerse(surahNumber, 1);
-	}
-
-	function handleVerseChange(verseNumber: number): void {
-		navigateToVerse(appState.currentSurahNum, verseNumber);
+	function handleModalNavigate(surahNumber: number, verseNumber: number): void {
+		navigateToVerse(surahNumber, verseNumber);
 	}
 
 	function toggleRecognition(): void {
@@ -236,8 +232,7 @@
 			surahs={appState.allSurahs}
 			selectedSurah={appState.currentSurahNum}
 			selectedVerse={appState.currentVerseNum}
-			onSurahChange={handleSurahChange}
-			onVerseChange={handleVerseChange}
+			onNavigate={handleModalNavigate}
 		/>
 	</div>
 {/if}

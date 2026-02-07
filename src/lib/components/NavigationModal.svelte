@@ -7,8 +7,7 @@
 		surahs: Surah[];
 		selectedSurah: number;
 		selectedVerse: number;
-		onSurahChange: (surahNumber: number) => void;
-		onVerseChange: (verseNumber: number) => void;
+		onNavigate: (surahNumber: number, verseNumber: number) => void;
 	}
 
 	let {
@@ -17,8 +16,7 @@
 		surahs,
 		selectedSurah,
 		selectedVerse,
-		onSurahChange,
-		onVerseChange
+		onNavigate
 	}: Props = $props();
 
 	// Local state for selection (doesn't navigate until "Go" is clicked)
@@ -46,10 +44,7 @@
 	}
 
 	function handleGo() {
-		onSurahChange(localSurah);
-		if (localVerse !== 1) {
-			onVerseChange(localVerse);
-		}
+		onNavigate(localSurah, localVerse);
 		onClose();
 	}
 

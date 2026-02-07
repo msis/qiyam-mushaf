@@ -1,7 +1,7 @@
 export interface Word {
 	uthmani: string;
 	simple: string;
-	highlighted: boolean;
+	normalizedSimple: string;
 }
 
 export interface Verse {
@@ -9,6 +9,7 @@ export interface Verse {
 	uthmani: string;
 	simple: string;
 	words: Word[];
+	simpleWordCount: number;
 }
 
 export interface Surah {
