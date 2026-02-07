@@ -17,27 +17,19 @@
 	// Scroll container element
 	let scrollElement: HTMLDivElement | undefined = $state();
 
-	// Build data array with spacers
-	type DataItem = { type: 'spacer'; height: number } | RenderableItem;
-
-	const data = $derived.by((): DataItem[] => {
-		const result: DataItem[] = [{ type: 'spacer', height: 70 }];
-		result.push(...items);
-		result.push({ type: 'spacer', height: 100 });
-		return result;
-	});
-
 	// Gap between items (in pixels)
 	const ITEM_GAP = 8;
 
 	// Create virtualizer with dynamic measurement
 	const virtualizer = createVirtualizer({
 		get count() {
-			return data.length;
+			return items.length;
 		},
 		getScrollElement: () => scrollElement ?? null,
 		estimateSize: () => 100,
 		overscan: 5,
+		paddingStart: 70,
+		paddingEnd: 100,
 	});
 
 	// Action to measure element - this tells TanStack the real height
@@ -51,7 +43,7 @@
 	}
 
 	export function scrollToIndex(index: number): void {
-		$virtualizer.scrollToIndex(index + 1, { align: 'center' });
+		$virtualizer.scrollToIndex(index, { align: 'center' });
 	}
 </script>
 
@@ -62,7 +54,7 @@
 			style="height: {$virtualizer.getTotalSize()}px;"
 		>
 			{#each $virtualizer.getVirtualItems() as virtualRow (virtualRow.key)}
-				{@const item = data[virtualRow.index]}
+				{@const item = items[virtualRow.index]}
 				{#if item}
 					<div
 						use:measureElement
@@ -70,9 +62,7 @@
 						class="absolute top-0 left-0 w-full"
 						style="transform: translateY({virtualRow.start}px);"
 					>
-						{#if item.type === 'spacer'}
-							<div style="height: {item.height}px;"></div>
-						{:else if item.type === 'surah-header'}
+						{#if item.type === 'surah-header'}
 							<div class="max-w-3xl mx-auto px-4" style="padding-bottom: {ITEM_GAP}px;">
 								<SurahHeader surah={item.surahData} />
 							</div>
