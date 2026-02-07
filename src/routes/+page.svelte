@@ -5,6 +5,7 @@
 	import { matchSpokenWords } from '$lib/utils/wordMatcher';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
+	import { fade } from 'svelte/transition';
 	import type { GlobalHighlightedWords } from '$lib/types';
 
 	let { data } = $props();
@@ -73,6 +74,13 @@
 		}
 	});
 
+	// Auto-dismiss speech error after 3 seconds
+	$effect(() => {
+		if (!speechStore.errorMessage) return;
+		const timeoutId = setTimeout(() => (speechStore.errorMessage = null), 3000);
+		return () => clearTimeout(timeoutId);
+	});
+
 	// --- User-initiated navigation ---
 
 	function navigateToVerse(surah: number, verse: number): void {
@@ -113,6 +121,16 @@
 			{currentSurah?.name} ({appState.currentSurahNum}:{appState.currentVerseNum})
 		</span>
 	</div>
+
+	{#if speechStore.errorMessage}
+		<div
+			transition:fade={{ duration: 200 }}
+			role="alert"
+			class="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-red-900/90 text-red-100 text-sm px-4 py-2 rounded-lg shadow-lg"
+		>
+			{speechStore.errorMessage}
+		</div>
+	{/if}
 
 	<div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
 		<button
