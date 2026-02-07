@@ -58,7 +58,8 @@
 <div bind:this={scrollElement} class="virtual-container">
 	{#if scrollElement}
 		<div
-			style="height: {$virtualizer.getTotalSize()}px; width: 100%; position: relative;"
+			class="relative w-full"
+			style="height: {$virtualizer.getTotalSize()}px;"
 		>
 			{#each $virtualizer.getVirtualItems() as virtualRow (virtualRow.key)}
 				{@const item = data[virtualRow.index]}
@@ -66,13 +67,8 @@
 					<div
 						use:measureElement
 						data-index={virtualRow.index}
-						style="
-							position: absolute;
-							top: 0;
-							left: 0;
-							width: 100%;
-							transform: translateY({virtualRow.start}px);
-						"
+						class="absolute top-0 left-0 w-full"
+						style="transform: translateY({virtualRow.start}px);"
 					>
 						{#if item.type === 'spacer'}
 							<div style="height: {item.height}px;"></div>
