@@ -27,13 +27,6 @@ class AppState {
 		this.highlightedWords = {};
 	}
 
-	addHighlights(verseKey: GlobalVerseKey, wordIndices: Set<number>): void {
-		this.highlightedWords = {
-			...this.highlightedWords,
-			[verseKey]: wordIndices
-		};
-	}
-
 	clearHighlights(): void {
 		this.highlightedWords = {};
 	}
@@ -47,7 +40,3 @@ class AppState {
 }
 
 export const appState = new AppState();
-
-export function createAppState(): AppState {
-	return new AppState();
-}

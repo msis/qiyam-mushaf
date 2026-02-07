@@ -1,4 +1,5 @@
 import type { Surah, GlobalVerseKey, RenderableItem, LookupMaps } from '$lib/types';
+import { SURAH_COUNT } from './constants';
 
 /**
  * Convert surah and verse numbers to a global key string
@@ -102,7 +103,7 @@ export function getNextVerse(
 	}
 
 	// Move to the next surah
-	if (currentSurah < 114) {
+	if (currentSurah < SURAH_COUNT) {
 		return { surah: currentSurah + 1, verse: 1 };
 	}
 
@@ -110,20 +111,3 @@ export function getNextVerse(
 	return null;
 }
 
-/**
- * Find the flat index for a specific verse, useful for scrolling to a position.
- */
-export function findVerseIndex(lookupMaps: LookupMaps, surah: number, verse: number): number | undefined {
-	const key = toGlobalKey(surah, verse);
-	return lookupMaps.keyToIndex.get(key);
-}
-
-/**
- * Get verse coordinates from a flat index.
- */
-export function getVerseFromIndex(
-	lookupMaps: LookupMaps,
-	index: number
-): { surah: number; verse: number } | undefined {
-	return lookupMaps.indexToKey.get(index);
-}

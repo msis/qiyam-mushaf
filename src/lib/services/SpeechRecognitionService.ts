@@ -40,7 +40,7 @@ interface SpeechRecognitionErrorEventType {
 }
 
 export class SpeechRecognitionService {
-	private static instance: SpeechRecognitionService;
+	private static instance: SpeechRecognitionService | undefined;
 	private recognition: SpeechRecognitionInstance | null = null;
 	private isListening = false;
 	private callbacks: SpeechRecognitionCallbacks = {};
@@ -56,9 +56,8 @@ export class SpeechRecognitionService {
 		return SpeechRecognitionService.instance;
 	}
 
-	// For testing: reset the singleton instance
 	static resetInstance(): void {
-		SpeechRecognitionService.instance = undefined as unknown as SpeechRecognitionService;
+		SpeechRecognitionService.instance = undefined;
 	}
 
 	private initializeRecognition(): void {

@@ -3,7 +3,7 @@ import { processQuranData } from '$lib/utils/dataProcessor';
 import { DB_NAME, DB_VERSION, STORE_NAME, CACHE_KEY } from '$lib/utils/constants';
 
 export class QuranDataService {
-	private static instance: QuranDataService;
+	private static instance: QuranDataService | undefined;
 	private data: QuranData | null = null;
 	private loadingPromise: Promise<QuranData> | null = null;
 	private dbPromise: Promise<IDBDatabase> | null = null;
@@ -17,9 +17,8 @@ export class QuranDataService {
 		return QuranDataService.instance;
 	}
 
-	// For testing: reset the singleton instance
 	static resetInstance(): void {
-		QuranDataService.instance = undefined as unknown as QuranDataService;
+		QuranDataService.instance = undefined;
 	}
 
 	private openDB(): Promise<IDBDatabase> {
