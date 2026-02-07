@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import '@fontsource/amiri/arabic-400.css';
+@import '@fontsource/amiri/arabic-700.css';
 
 /*
  * Tailwind v4 Theme Configuration
@@ -10,25 +12,6 @@
 
 	/* Custom animation for recording pulse */
 	--animate-pulse-recording: pulse-recording 1.5s infinite;
-}
-
-/* Arabic font - self-hosted from Google Fonts for performance */
-@font-face {
-	font-family: 'Amiri';
-	font-style: normal;
-	font-weight: 400;
-	font-display: swap;
-	src: url('https://fonts.gstatic.com/s/amiri/v27/J7aRnpd8CGxBHqUpvrIw74NL.woff2') format('woff2');
-	unicode-range: U+0600-06FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE80-FEFC;
-}
-
-@font-face {
-	font-family: 'Amiri';
-	font-style: normal;
-	font-weight: 700;
-	font-display: swap;
-	src: url('https://fonts.gstatic.com/s/amiri/v27/J7acnpd8CGxBHp2VkZYlWI_lLQ.woff2') format('woff2');
-	unicode-range: U+0600-06FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE80-FEFC;
 }
 
 /* Recording pulse keyframes */
