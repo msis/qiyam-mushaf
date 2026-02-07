@@ -53,11 +53,3 @@ function splitIntoWords(uthmaniText: string, simpleText: string): Word[] {
 
 	return words;
 }
-
-export function findSurahByNumber(surahNumber: number, data: QuranData): Surah | undefined {
-	return data.surahs[surahNumber - 1];
-}
-
-export function findVerseByNumber(surah: Surah, verseNumber: number): Verse | undefined {
-	return surah.verses[verseNumber - 1];
-}

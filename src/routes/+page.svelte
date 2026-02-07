@@ -14,8 +14,6 @@
 
 	const currentSurah = $derived(data.surahs[appState.currentSurahNum - 1] ?? null);
 
-	// --- Scroll + advance helpers (replaces GlobalScrollManager + ScrollStore) ---
-
 	function scrollToVerse(surah: number, verse: number): void {
 		const flatIndex = data.lookupMaps.keyToIndex.get(toGlobalKey(surah, verse));
 		if (flatIndex !== undefined && virtualListRef) {

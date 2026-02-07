@@ -1,5 +1,5 @@
-import type { QuranData, QuranRawData, Surah, Verse } from '$lib/types';
-import { processQuranData, findSurahByNumber, findVerseByNumber } from '$lib/utils/dataProcessor';
+import type { QuranData, QuranRawData } from '$lib/types';
+import { processQuranData } from '$lib/utils/dataProcessor';
 import { DB_NAME, DB_VERSION, STORE_NAME, CACHE_KEY } from '$lib/utils/constants';
 
 export class QuranDataService {
@@ -120,22 +120,6 @@ export class QuranDataService {
 		} catch (error) {
 			console.error('Error saving to cache:', error);
 		}
-	}
-
-	async getSurah(surahNumber: number): Promise<Surah | undefined> {
-		const data = await this.loadData();
-		return findSurahByNumber(surahNumber, data);
-	}
-
-	async getVerse(surahNumber: number, verseNumber: number): Promise<Verse | undefined> {
-		const surah = await this.getSurah(surahNumber);
-		if (!surah) return undefined;
-		return findVerseByNumber(surah, verseNumber);
-	}
-
-	async getAllSurahs(): Promise<Surah[]> {
-		const data = await this.loadData();
-		return data.surahs;
 	}
 
 	async clearCache(): Promise<void> {
