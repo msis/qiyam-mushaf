@@ -1,54 +1,57 @@
 <script lang="ts">
 	import { appState } from '$lib/stores/app.svelte';
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
-	import { createScrollStore } from '$lib/stores/scroll.svelte';
-	import { toGlobalKey } from '$lib/utils/globalAddressing';
+	import { toGlobalKey, getNextVerse } from '$lib/utils/globalAddressing';
 	import { matchSpokenWords } from '$lib/utils/wordMatcher';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
 	import type { GlobalHighlightedWords } from '$lib/types';
 
-	// Load data from +page.ts (SvelteKit handles loading/error states automatically)
 	let { data } = $props();
 
 	const speechStore = getSpeechStore();
-
-	// Create scroll store with callbacks
-	const scrollStore = createScrollStore({
-		autoAdvance: true,
-		onVerseChange: (surah, verse) => {
-			appState.setPosition(surah, verse);
-		},
-		onScrollToIndex: (index) => {
-			virtualListRef?.scrollToIndex(index);
-		}
-	});
-
-	// Reference to virtual list for scrolling
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
-	// Derived: current surah from load data + position state
 	const currentSurah = $derived(data.surahs[appState.currentSurahNum - 1] ?? null);
 
-	// Sync scroll store with loaded data (runs once)
-	$effect(() => {
-		scrollStore.setSurahs(data.surahs);
-		scrollStore.setLookupMaps(data.lookupMaps);
-	});
+	// --- Scroll + advance helpers (replaces GlobalScrollManager + ScrollStore) ---
 
-	// React to speech transcript changes
+	function scrollToVerse(surah: number, verse: number): void {
+		const flatIndex = data.lookupMaps.keyToIndex.get(toGlobalKey(surah, verse));
+		if (flatIndex !== undefined && virtualListRef) {
+			virtualListRef.scrollToIndex(flatIndex);
+		}
+	}
+
+	function isVerseComplete(highlights: GlobalHighlightedWords): boolean {
+		const key = appState.currentVerseKey;
+		if (!key) return false;
+		const matched = highlights[key];
+		if (!matched) return false;
+		const verse = currentSurah?.verses[appState.currentVerseNum - 1];
+		if (!verse) return false;
+		return matched.size >= verse.simpleWordCount;
+	}
+
+	function advanceToNextVerse(): void {
+		const next = getNextVerse(data.surahs, appState.currentSurahNum, appState.currentVerseNum);
+		if (!next) return;
+		appState.setPosition(next.surah, next.verse);
+		scrollToVerse(next.surah, next.verse);
+	}
+
+	// --- Reactive effects ---
+
+	// Match spoken words against current verse
 	$effect(() => {
 		const transcript = speechStore.transcript;
-		if (!transcript || transcript.trim().length === 0) {
-			return;
-		}
+		if (!transcript || transcript.trim().length === 0) return;
 
 		const currentVerseIndex = appState.currentVerseNum - 1;
 
 		if (currentSurah) {
 			const localMatches = matchSpokenWords(transcript, currentSurah.verses, currentVerseIndex);
 
-			// Convert local verse indices to global keys
 			const globalMatches: GlobalHighlightedWords = {};
 			for (const [verseIdx, wordSet] of Object.entries(localMatches)) {
 				const verseNumber = Number(verseIdx) + 1;
@@ -58,19 +61,11 @@
 
 			appState.highlightedWords = globalMatches;
 
-			if (scrollStore.checkShouldAdvance(globalMatches)) {
-				const timeoutId = setTimeout(() => {
-					scrollStore.advanceToNextVerse(globalMatches);
-				}, 500);
-
+			if (isVerseComplete(globalMatches)) {
+				const timeoutId = setTimeout(() => advanceToNextVerse(), 500);
 				return () => clearTimeout(timeoutId);
 			}
 		}
-	});
-
-	// Keep scroll manager synced with position
-	$effect(() => {
-		scrollStore.setCurrentPosition(appState.currentSurahNum, appState.currentVerseNum);
 	});
 
 	// Clear highlights when recognition starts
@@ -80,28 +75,16 @@
 		}
 	});
 
-	// Navigation handlers
-	function navigateToVerse(surah: number, verse: number, scroll = true): void {
-		const flatIndex = data.lookupMaps.keyToIndex.get(toGlobalKey(surah, verse));
+	// --- User-initiated navigation ---
 
-		if (speechStore.isListening) {
-			speechStore.stop();
-		}
-
+	function navigateToVerse(surah: number, verse: number): void {
+		if (speechStore.isListening) speechStore.stop();
 		appState.setPosition(surah, verse);
-		scrollStore.setCurrentPosition(surah, verse);
-
-		if (scroll && flatIndex !== undefined && virtualListRef) {
-			virtualListRef.scrollToIndex(flatIndex);
-		}
+		scrollToVerse(surah, verse);
 	}
 
 	function handleVerseClick(surah: number, verse: number): void {
-		navigateToVerse(surah, verse, false);
-	}
-
-	function handleModalNavigate(surahNumber: number, verseNumber: number): void {
-		navigateToVerse(surahNumber, verseNumber);
+		appState.setPosition(surah, verse);
 	}
 
 	function toggleRecognition(): void {
@@ -110,7 +93,6 @@
 </script>
 
 <div class="h-screen bg-gray-900 flex flex-col">
-	<!-- Navigation button - fixed position -->
 	<div class="fixed top-4 right-4 z-40">
 		<button
 			onclick={() => (appState.isModalOpen = true)}
@@ -128,14 +110,12 @@
 		</button>
 	</div>
 
-	<!-- Current position indicator - fixed position -->
 	<div class="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg">
 		<span class="text-amber-100 text-sm font-medium">
 			{currentSurah?.name} ({appState.currentSurahNum}:{appState.currentVerseNum})
 		</span>
 	</div>
 
-	<!-- Recording button - fixed position with pulse animation when listening -->
 	<div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
 		<button
 			onclick={toggleRecognition}
@@ -145,12 +125,10 @@
 			title={speechStore.isListening ? 'Stop recording' : 'Start recording'}
 		>
 			{#if speechStore.isListening}
-				<!-- Stop icon -->
 				<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<rect x="6" y="6" width="12" height="12" stroke-width="2" />
 				</svg>
 			{:else}
-				<!-- Microphone icon -->
 				<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
@@ -163,7 +141,6 @@
 		</button>
 	</div>
 
-	<!-- Virtual scrolling Quran display -->
 	<div class="flex-1 min-h-0 h-full">
 		<QuranVirtualList
 			bind:this={virtualListRef}
@@ -174,13 +151,13 @@
 		/>
 	</div>
 
-	<!-- Navigation modal -->
-	<NavigationModal
-		isOpen={appState.isModalOpen}
-		onClose={() => (appState.isModalOpen = false)}
-		surahs={data.surahs}
-		selectedSurah={appState.currentSurahNum}
-		selectedVerse={appState.currentVerseNum}
-		onNavigate={handleModalNavigate}
-	/>
+	{#if appState.isModalOpen}
+		<NavigationModal
+			onClose={() => (appState.isModalOpen = false)}
+			surahs={data.surahs}
+			selectedSurah={appState.currentSurahNum}
+			selectedVerse={appState.currentVerseNum}
+			onNavigate={navigateToVerse}
+		/>
+	{/if}
 </div>

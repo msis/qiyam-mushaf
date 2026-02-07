@@ -68,7 +68,7 @@ export function buildLookupMaps(items: RenderableItem[]): LookupMaps {
 	const indexToKey = new Map<number, { surah: number; verse: number }>();
 
 	for (const item of items) {
-		if (item.type === 'verse' && item.verseKey && item.verse) {
+		if (item.type === 'verse') {
 			keyToIndex.set(item.verseKey, item.index);
 			indexToKey.set(item.index, {
 				surah: item.surahNumber,

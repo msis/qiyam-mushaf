@@ -76,7 +76,7 @@
 					>
 						{#if item.type === 'spacer'}
 							<div style="height: {item.height}px;"></div>
-						{:else if item.type === 'surah-header' && item.surahData}
+						{:else if item.type === 'surah-header'}
 							<div class="max-w-3xl mx-auto px-4" style="padding-bottom: {ITEM_GAP}px;">
 								<SurahHeader surah={item.surahData} />
 							</div>
@@ -84,7 +84,7 @@
 							<div class="max-w-3xl mx-auto px-4" style="padding-bottom: {ITEM_GAP}px;">
 								<Bismillah />
 							</div>
-						{:else if item.type === 'verse' && item.verse && item.verseKey}
+						{:else if item.type === 'verse'}
 							<div class="max-w-3xl mx-auto px-4" style="padding-bottom: {ITEM_GAP}px;">
 								<VerseRow
 									verse={item.verse}
