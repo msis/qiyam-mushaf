@@ -33,8 +33,8 @@ Quran Teleprompter - A SvelteKit 5 web app that displays Quran text and uses spe
 ```bash
 bun install          # Install dependencies
 bun dev              # Start dev server with HMR (hot reloading)
-bun run build        # Build for production to dist/
-bun start            # Run production server
+bun run build        # Build for production to build/
+bun preview          # Preview production build
 bun test             # Run all tests
 bun test <file>      # Run specific test file (e.g., bun test tests/wordMatcher.test.ts)
 ```
@@ -55,7 +55,7 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 **QuranDataService** (`src/lib/services/QuranDataService.ts`)
 
 - Fetches and caches Quran data in IndexedDB
-- Provides `getSurah()`, `getVerse()`, `getAllSurahs()`
+- Provides `loadData()` and `clearCache()`
 
 **SpeechRecognitionService** (`src/lib/services/SpeechRecognitionService.ts`)
 
@@ -76,7 +76,7 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 1. User speaks → SpeechRecognitionService emits transcript
 2. `+page.svelte` passes transcript to `matchSpokenWords()` with current verse
 3. Matched word indices stored in `highlightedWords` state (GlobalVerseKey → Set of wordIndices)
-4. When all words matched, ScrollStore triggers `advanceToNextVerse()`
+4. When all words matched, `$effect` in `+page.svelte` triggers `advanceToNextVerse()`
 
 ## Type Definitions
 
@@ -93,4 +93,5 @@ All types in `src/lib/types/index.ts`:
 
 - `SURAH_NAMES` - Array of all 114 surahs with Arabic/English names and verse counts
 - `LANGUAGE_CODE` - Arabic locale for speech recognition (`ar-SA`)
+- `SIMILARITY_THRESHOLD` - Levenshtein match threshold (0.7)
 - `DB_NAME`, `DB_VERSION`, `STORE_NAME`, `CACHE_KEY` - IndexedDB configuration

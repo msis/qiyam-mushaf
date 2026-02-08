@@ -13,42 +13,58 @@ A minimalist, modern web application that helps users read the Quran by automati
 - **Offline Support**: Quran data is embedded and cached in the browser
 - **Minimalist Design**: Clean, modern interface optimized for reading Arabic text (RTL)
 - **Responsive**: Works on desktop and mobile devices
+- **Virtual Scrolling**: Smooth scrolling through 6000+ items using [virtua](https://github.com/inokawa/virtua)
+- **PWA**: Installable with manifest, standalone mode, portrait orientation
 
 ## Technical Stack
 
-- **Frontend Framework**: React
-- **Styling**: Tailwind CSS (via CDN)
+- **Framework**: SvelteKit 2 + Svelte 5 (runes)
+- **Styling**: Tailwind CSS v4
 - **Speech Recognition**: Web Speech API (built-in browser API)
 - **Language**: TypeScript
 - **Runtime**: Bun
+- **Build**: Vite 6, adapter-static (SPA fallback)
 
 ## Project Structure
 
 ```
-taraweeh-mushaf/
-├── public/
-│   └── data/
-│       ├── quran-uthmani-list.json          # Quran text with tashkeel (for display)
-│       └── quran-simple-clean-list.json     # Quran text without tashkeel (for speech recognition)
-├── src/
+src/
+├── routes/
+│   ├── +page.ts                  # Load function: fetches data, builds lookup maps
+│   ├── +page.svelte              # Main UI: speech matching, navigation, effects
+│   ├── +layout.svelte            # Root layout (imports app.css)
+│   └── +error.svelte             # Error page (404, 500)
+├── lib/
 │   ├── components/
-│   │   └── NavigationModal.tsx             # Modal for surah/verse selection
+│   │   ├── QuranVirtualList.svelte  # Virtual scroll container (virtua)
+│   │   ├── VerseRow.svelte          # Single verse with word highlighting
+│   │   ├── SurahHeader.svelte       # Surah title display
+│   │   ├── Bismillah.svelte         # Bismillah separator
+│   │   └── NavigationModal.svelte   # Surah/verse picker modal
 │   ├── services/
-│   │   ├── QuranDataService.ts             # Load and cache Quran data
-│   │   └── SpeechRecognitionService.ts      # Handle speech recognition
-│   ├── utils/
-│   │   ├── dataProcessor.ts                 # Prepare data structure
-│   │   └── constants.ts                     # Surah names, verses counts, etc.
+│   │   ├── QuranDataService.ts      # Fetch + IndexedDB cache (singleton)
+│   │   └── SpeechRecognitionService.ts  # Web Speech API wrapper (singleton)
+│   ├── stores/
+│   │   ├── app.svelte.ts            # Position, highlights, modal state
+│   │   └── speech.svelte.ts         # Reactive wrapper for speech service
 │   ├── types/
-│   │   └── index.ts                         # TypeScript type definitions
-│   ├── App.tsx                              # Main application component
-│   ├── index.tsx                            # Entry point
-│   └── index.css                            # Global styles
-├── tests/                                    # Test files
-├── package.json
-├── bun.lock
-├── tsconfig.json
-└── README.md
+│   │   └── index.ts                 # All TypeScript interfaces
+│   └── utils/
+│       ├── wordMatcher.ts           # Arabic normalization + Levenshtein matching
+│       ├── dataProcessor.ts         # Merge uthmani/simple into Word[] structs
+│       ├── globalAddressing.ts      # Flat index ↔ GlobalVerseKey maps
+│       └── constants.ts             # Surah names, DB config, thresholds
+├── service-worker.ts             # Cache-first for assets, network-first for dynamic
+├── app.css                       # Tailwind v4 config, Amiri font, custom utilities
+└── app.html                      # HTML shell (RTL, meta tags, manifest link)
+
+static/
+├── data/
+│   ├── quran-uthmani-list.json   # Display text (with tashkeel)
+│   └── quran-simple-clean-list.json  # Speech matching text (no tashkeel)
+├── manifest.json                 # PWA manifest
+├── favicon.png
+└── icons/                        # PWA icons (192, 512, maskable)
 ```
 
 ## Data Structure
@@ -63,10 +79,7 @@ Both `quran-uthmani-list.json` and `quran-simple-clean-list.json` are arrays of 
     "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
     "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ"
   ],
-  [
-    "ٱلْم",
-    "ذَٰلِكَ ٱلْكِتَـٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ"
-  ]
+  ["ٱلْم", "ذَٰلِكَ ٱلْكِتَـٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ"]
 ]
 ```
 
@@ -86,7 +99,7 @@ interface Verse {
 interface Word {
   uthmani: string;
   simple: string;
-  highlighted: boolean;
+  normalizedSimple: string;
 }
 
 interface Surah {
@@ -103,11 +116,13 @@ interface Surah {
 ### Data Layer
 
 **QuranDataService**
-- Loads both JSON files from `public/data/`
-- Caches data in `localStorage` for offline use
+
+- Loads both JSON files from `static/data/`
+- Caches data in `IndexedDB` for offline use
 - Provides methods to get Surah/Verse data
 
 **Data Processing**
+
 - Merges Uthmani and simple text into unified structure
 - Splits verses into words for word-by-word highlighting
 - Creates mapping between display and recognition words
@@ -115,6 +130,7 @@ interface Surah {
 ### Speech Recognition Layer
 
 **SpeechRecognitionService**
+
 - Wraps Web Speech API
 - Handles Arabic language (`ar-SA`)
 - Emits events for:
@@ -125,14 +141,17 @@ interface Surah {
 ### UI Layer
 
 **Components**
+
 - `NavigationModal`: Modal with Surah and Verse dropdowns
-- `App`: Main application with Quran display and controls
+- `+page.svelte`: Main application with Quran display and controls
 
 **Controls**
+
 - Burger menu (top-right) - Opens navigation modal
 - Microphone button (bottom-center) - Starts/stops speech recognition
 
 **Styling**
+
 - Tailwind CSS for utility classes
 - RTL (Right-to-Left) text direction
 - Arabic font (Amiri)
@@ -168,12 +187,13 @@ bun dev
 bun run build
 
 # Preview production build
-bun start
+bun preview
 ```
 
 ### Browser Requirements
 
 The Web Speech API requires:
+
 - **Chrome/Edge**: Full support (recommended)
 - **Safari**: Limited support, may require user permission
 - **Firefox**: No support for Web Speech API
@@ -205,7 +225,7 @@ The Web Speech API requires:
 - **Browser Support**: Web Speech API not supported in Firefox
 - **Accuracy**: Speech recognition accuracy varies based on pronunciation and microphone quality
 - **Partial Matches**: The app handles partial matches but may miss some words
-- **Offline**: Works offline after initial data load (cached in localStorage)
+- **Offline**: Works offline after initial data load (cached in IndexedDB)
 
 ## Testing
 
@@ -213,11 +233,8 @@ The Web Speech API requires:
 # Run tests
 bun test
 
-# Run linter
-bun run lint
-
 # Type check
-bun run type-check
+bun run check
 ```
 
 ## Contributing
@@ -241,7 +258,7 @@ This is a personal project, but contributions are welcome:
 
 ## Future Enhancements
 
-- [ ] Word-by-word highlighting while reading
+- [x] Word-by-word highlighting while reading
 - [ ] Add multiple recitations (audio playback)
 - [ ] Translation display
 - [ ] Reading speed adjustment
