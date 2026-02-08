@@ -26,8 +26,9 @@
 			return items.length;
 		},
 		getScrollElement: () => scrollElement ?? null,
-		estimateSize: () => 100,
-		overscan: 5,
+		estimateSize: () => 200,
+		getItemKey: (index: number) => items[index]?.index ?? index,
+		overscan: 10,
 		paddingStart: 70,
 		paddingEnd: 100,
 	});
