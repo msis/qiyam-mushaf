@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+@import '@fontsource/amiri/arabic-400.css';
+@import '@fontsource/amiri/arabic-700.css';
+
+/*
+ * Tailwind v4 Theme Configuration
+ * Defines custom design tokens and utilities
+ */
+@theme {
+	/* Custom font family for Arabic text */
+	--font-arabic: 'Amiri', 'Traditional Arabic', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+
+	/* Custom animation for recording pulse */
+	--animate-pulse-recording: pulse-recording 1.5s infinite;
+}
+
+/* Recording pulse keyframes */
+@keyframes pulse-recording {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+	}
+	50% {
+		box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+	}
+}
+
+/* Custom utilities using Tailwind v4 @utility directive */
+@utility font-arabic {
+	font-family: var(--font-arabic);
+	line-height: 2;
+}
+
+@utility safe-area-bottom {
+	@supports (padding-bottom: env(safe-area-inset-bottom)) {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+}

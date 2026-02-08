@@ -1,21 +1,31 @@
 {
-  "name": "bun-react-template",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "bun --hot src/index.ts",
-    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
-    "start": "NODE_ENV=production bun src/index.ts",
-    "test": "bun test"
-  },
-  "dependencies": {
-    "react": "^19",
-    "react-dom": "^19"
-  },
+  "name": "quran-teleprompter",
+  "version": "1.0.0",
   "devDependencies": {
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "@sveltejs/adapter-static": "^3.0.8",
+    "@sveltejs/kit": "^2.15.2",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-basic-ssl": "^2.1.4",
+    "svelte": "^5.19.0",
+    "svelte-check": "^4.1.4",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vitest": "^3.0.0"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest"
+  },
+  "type": "module",
+  "dependencies": {
+    "@fontsource/amiri": "^5.2.8",
+    "virtua": "^0.48.5"
   }
 }
