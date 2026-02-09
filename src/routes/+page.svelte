@@ -6,6 +6,7 @@
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
 	import { fade } from 'svelte/transition';
+	import { VERSE_ADVANCE_DELAY, ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalHighlightedWords } from '$lib/types';
 
 	let { data } = $props();
@@ -61,7 +62,7 @@
 			appState.highlightedWords = globalMatches;
 
 			if (isVerseComplete(globalMatches)) {
-				const timeoutId = setTimeout(() => advanceToNextVerse(), 500);
+				const timeoutId = setTimeout(() => advanceToNextVerse(), VERSE_ADVANCE_DELAY);
 				return () => clearTimeout(timeoutId);
 			}
 		}
@@ -77,7 +78,7 @@
 	// Auto-dismiss speech error after 3 seconds
 	$effect(() => {
 		if (!speechStore.errorMessage) return;
-		const timeoutId = setTimeout(() => (speechStore.errorMessage = null), 3000);
+		const timeoutId = setTimeout(() => (speechStore.errorMessage = null), ERROR_DISMISS_DELAY);
 		return () => clearTimeout(timeoutId);
 	});
 

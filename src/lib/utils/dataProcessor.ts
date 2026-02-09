@@ -1,19 +1,6 @@
 import type { QuranRawData, QuranData, Surah, Verse, Word } from '$lib/types';
-import { SURAH_NAMES } from './constants';
+import { SURAH_NAMES, TAJWEED_MARKS } from './constants';
 import { normalizeArabicWord } from './wordMatcher';
-
-/** Standalone tajweed/juz mark codepoints in uthmani */
-const TAJWEED_MARKS = new Set([
-	'\u06D6', // ۖ
-	'\u06D7', // ۗ
-	'\u06D8', // ۘ
-	'\u06D9', // ۙ
-	'\u06DA', // ۚ
-	'\u06DB', // ۛ
-	'\u06DC', // ۜ
-	'\u06DE', // ۞
-	'\u06E9' // ۩
-]);
 
 function isMark(word: string): boolean {
 	for (const ch of word) {
