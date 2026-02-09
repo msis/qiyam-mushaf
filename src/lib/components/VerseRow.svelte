@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
 	import type { Verse, GlobalVerseKey } from '$lib/types';
 
 	interface Props {
@@ -11,6 +12,19 @@
 	}
 
 	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedWordIndices, onclick }: Props = $props();
+
+	const uthmaniWords = $derived(verse.uthmani.trim().split(/\s+/));
+
+	// Convert simple-word indices → uthmani-word indices for highlighting
+	const highlightedUthmaniSet = $derived.by(() => {
+		if (!highlightedWordIndices) return undefined;
+		const set = new SvelteSet<number>();
+		for (const simpleIdx of highlightedWordIndices) {
+			const word = verse.words[simpleIdx];
+			if (word) set.add(word.uthmaniIndex);
+		}
+		return set;
+	});
 
 	function handleClick() {
 		onclick?.(surahNumber, verse.number);
@@ -37,14 +51,14 @@
 		>
 			{surahNumber}:{verse.number}
 		</span>
-		{#each verse.words as word, wordIndex (wordIndex)}
-			{@const isHighlighted = highlightedWordIndices?.has(wordIndex)}
+		{#each uthmaniWords as uthmaniWord, uIdx (uIdx)}
+			{@const isHighlighted = highlightedUthmaniSet?.has(uIdx)}
 			<span
 				class="inline-block px-1 mx-0.5 rounded transition-all duration-200 {isHighlighted
 					? 'bg-amber-500 text-white font-bold scale-110'
 					: ''}"
 			>
-				{word.uthmani}
+				{uthmaniWord}
 			</span>
 		{/each}
 	</p>

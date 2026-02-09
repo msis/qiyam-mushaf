@@ -2,6 +2,35 @@ import type { QuranRawData, QuranData, Surah, Verse, Word } from '$lib/types';
 import { SURAH_NAMES } from './constants';
 import { normalizeArabicWord } from './wordMatcher';
 
+/** Standalone tajweed/juz mark codepoints in uthmani */
+const TAJWEED_MARKS = new Set([
+	'\u06D6', // ۖ
+	'\u06D7', // ۗ
+	'\u06D8', // ۘ
+	'\u06D9', // ۙ
+	'\u06DA', // ۚ
+	'\u06DB', // ۛ
+	'\u06DC', // ۜ
+	'\u06DE', // ۞
+	'\u06E9' // ۩
+]);
+
+function isMark(word: string): boolean {
+	for (const ch of word) {
+		if (!TAJWEED_MARKS.has(ch)) return false;
+	}
+	return true;
+}
+
+/** How many simple words a single uthmani token maps to: 0 (mark), 1, or 2 (merge). */
+function simpleWordsPerToken(token: string): number {
+	if (isMark(token)) return 0;
+	if (/^يَـٰٓ?ـ?َ?ٔ?.+/.test(token)) return 2; // يَـٰ vocative merge
+	if (/^وَيَـٰٓ?ـ?َ?ٔ?.+/.test(token)) return 2; // وَيَـٰ conjunction+vocative
+	if (token.startsWith('هَـٰٓأَ') || token.startsWith('هَـٰٓأُ')) return 2; // هَـٰٓأ demonstrative (not هَـٰٓؤ)
+	return 1;
+}
+
 export function processQuranData(rawData: QuranRawData): QuranData {
 	const surahs: Surah[] = [];
 
@@ -12,7 +41,8 @@ export function processQuranData(rawData: QuranRawData): QuranData {
 
 		const verses: Verse[] = uthmaniVerses.map((uthmaniText, verseIndex) => {
 			const simpleText = simpleVerses[verseIndex];
-			const words = splitIntoWords(uthmaniText, simpleText);
+			const uthmaniWords = uthmaniText.trim().split(/\s+/);
+			const words = buildWordMapping(uthmaniWords, simpleText);
 
 			return {
 				number: verseIndex + 1,
@@ -35,20 +65,36 @@ export function processQuranData(rawData: QuranRawData): QuranData {
 	return { surahs };
 }
 
-function splitIntoWords(uthmaniText: string, simpleText: string): Word[] {
-	const uthmaniWords = uthmaniText.trim().split(/\s+/);
+/** Map each simple word to its uthmani token index. */
+function buildWordMapping(uthmaniWords: string[], simpleText: string): Word[] {
 	const simpleWords = simpleText.trim().split(/\s+/);
-
 	const words: Word[] = [];
-	const maxLength = Math.max(uthmaniWords.length, simpleWords.length);
+	let simpleIdx = 0;
 
-	for (let i = 0; i < maxLength; i++) {
-		const simple = simpleWords[i] || '';
+	for (let uIdx = 0; uIdx < uthmaniWords.length; uIdx++) {
+		const count = simpleWordsPerToken(uthmaniWords[uIdx]);
+
+		for (let j = 0; j < count; j++) {
+			const simple = simpleWords[simpleIdx] ?? '';
+			words.push({
+				simple,
+				normalizedSimple: normalizeArabicWord(simple),
+				uthmaniIndex: uIdx
+			});
+			simpleIdx++;
+		}
+	}
+
+	// 20:94 يَبْنَؤُمَّ and 72:16 وَأَلَّوِ — highlighting shifted, completion correct
+	const lastUIdx = uthmaniWords.length - 1;
+	while (simpleIdx < simpleWords.length) {
+		const simple = simpleWords[simpleIdx];
 		words.push({
-			uthmani: uthmaniWords[i] || '',
 			simple,
-			normalizedSimple: normalizeArabicWord(simple)
+			normalizedSimple: normalizeArabicWord(simple),
+			uthmaniIndex: lastUIdx
 		});
+		simpleIdx++;
 	}
 
 	return words;

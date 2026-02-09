@@ -1,14 +1,14 @@
 export interface Word {
-	uthmani: string;
 	simple: string;
 	normalizedSimple: string;
+	uthmaniIndex: number; // index into verse.uthmaniWords
 }
 
 export interface Verse {
 	number: number;
 	uthmani: string;
 	simple: string;
-	words: Word[];
+	words: Word[]; // one per simple word; uthmaniIndex points into uthmani.split(/\s+/)
 	simpleWordCount: number;
 }
 
