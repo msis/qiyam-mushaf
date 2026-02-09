@@ -194,6 +194,37 @@ bun run build
 bun preview
 ```
 
+## Deployment
+
+This project is automatically deployed to GitHub Pages using GitHub Actions when changes are pushed to the `main` branch.
+
+### GitHub Pages Setup
+
+1. Go to your repository settings
+2. Navigate to **Pages** section
+3. Under **Source**, select **GitHub Actions**
+4. The workflow will automatically build and deploy on every push to `main`
+
+### Custom Domain Configuration
+
+If you want to deploy to a custom domain or subdirectory:
+
+1. Go to repository **Settings** → **Secrets and variables** → **Actions** → **Variables**
+2. Create a new repository variable named `BASE_PATH`
+3. Set the value:
+   - For custom domain (e.g., `quran.example.com`): leave empty or set to ``
+   - For subdirectory (e.g., `username.github.io/taraweeh-mushaf`): set to `/taraweeh-mushaf`
+
+The `BASE_PATH` variable configures the application to work correctly with the deployment path.
+
+### Manual Deployment
+
+You can also trigger a manual deployment:
+
+1. Go to the **Actions** tab in your repository
+2. Select the **Build and Deploy to GitHub Pages** workflow
+3. Click **Run workflow**
+
 ### Browser Requirements
 
 The Web Speech API requires:
