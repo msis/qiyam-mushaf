@@ -45,7 +45,7 @@ jobs:
         with:
           path: |
             .svelte-kit
-          key: ${{ runner.os }}-sveltekit-${{ github.sha }}
+          key: ${{ runner.os }}-sveltekit-${{ hashFiles('**/bun.lock', 'svelte.config.js', 'vite.config.ts') }}
           restore-keys: |
             ${{ runner.os }}-sveltekit-
 
