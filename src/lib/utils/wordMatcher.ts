@@ -64,7 +64,6 @@ export function normalizeArabicWord(word: string): string {
     .replace(/[ئ]/g, "ي")
     .replace(/[ة]/g, "ه")
     .replace(/[\u064B-\u065F]/g, "")
-    .replace(/[\u06D6-\u06ED]/g, "")
     .toLowerCase()
     .trim();
 }

@@ -120,9 +120,26 @@ export const LANGUAGE_CODE = 'ar-SA';
 
 // IndexedDB configuration
 export const DB_NAME = 'quran-teleprompter';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 export const STORE_NAME = 'cache';
 export const CACHE_KEY = 'quran-data';
 
 // Word matching configuration
 export const SIMILARITY_THRESHOLD = 0.7; // Minimum similarity ratio (0-1) for Levenshtein matching
+
+// Timing configuration (ms)
+export const VERSE_ADVANCE_DELAY = 500;
+export const ERROR_DISMISS_DELAY = 3000;
+
+// Standalone tajweed/juz mark codepoints that appear as whitespace-delimited tokens in uthmani
+export const TAJWEED_MARKS = new Set([
+	'\u06D6', // ۖ small high sad
+	'\u06D7', // ۗ small high ain
+	'\u06D8', // ۘ small high meem initial
+	'\u06D9', // ۙ small high lam alef
+	'\u06DA', // ۚ small meem
+	'\u06DB', // ۛ small high three dots
+	'\u06DC', // ۜ small high seen
+	'\u06DE', // ۞ rub el hizb
+	'\u06E9' // ۩ place of sajdah
+]);
