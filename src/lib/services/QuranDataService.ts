@@ -32,9 +32,10 @@ export class QuranDataService {
 
 			request.onupgradeneeded = () => {
 				const db = request.result;
-				if (!db.objectStoreNames.contains(STORE_NAME)) {
-					db.createObjectStore(STORE_NAME);
+				if (db.objectStoreNames.contains(STORE_NAME)) {
+					db.deleteObjectStore(STORE_NAME);
 				}
+				db.createObjectStore(STORE_NAME);
 			};
 		});
 
