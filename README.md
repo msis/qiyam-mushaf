@@ -89,17 +89,16 @@ Both `quran-uthmani-list.json` and `quran-simple-clean-list.json` are arrays of 
 ### Internal Data Structure
 
 ```typescript
-interface Verse {
-  number: number;
-  uthmani: string;
-  simple: string;
-  words: Word[];
+interface Word {
+  simple: string;            // simple-script word (for matching)
+  normalizedSimple: string;  // pre-normalized for Levenshtein comparison
+  uthmaniIndex: number;      // index into verse.uthmani.split(/\s+/)
 }
 
-interface Word {
-  uthmani: string;
-  simple: string;
-  normalizedSimple: string;
+interface Verse {
+  number: number;
+  uthmani: string;           // full uthmani text (display source)
+  words: Word[];             // one per simple word, maps to uthmani tokens
 }
 
 interface Surah {
@@ -111,6 +110,11 @@ interface Surah {
 }
 ```
 
+The mapping from simple words to uthmani tokens is many-to-one:
+- **Vocative merges** (e.g. يَـٰٓأَيُّهَا = يا + أيها): two `Word` entries share the same `uthmaniIndex`
+- **Tajweed marks** (e.g. ۖ ۗ ۞): uthmani tokens with no `Word` pointing to them
+- Display iterates `uthmani.split(/\s+/)`, highlighting converts simple indices → uthmani indices
+
 ## Architecture
 
 ### Data Layer
@@ -121,11 +125,11 @@ interface Surah {
 - Caches data in `IndexedDB` for offline use
 - Provides methods to get Surah/Verse data
 
-**Data Processing**
+**Data Processing** (`dataProcessor.ts`)
 
-- Merges Uthmani and simple text into unified structure
-- Splits verses into words for word-by-word highlighting
-- Creates mapping between display and recognition words
+- Builds a many-to-one mapping from simple words → uthmani token indices
+- Handles tajweed marks (9 codepoints, skipped) and vocative/demonstrative merges (split into 2 simple words sharing one uthmani index)
+- Pre-computes `normalizedSimple` on each word to avoid per-speech-event normalization
 
 ### Speech Recognition Layer
 

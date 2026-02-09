@@ -1,15 +1,13 @@
 export interface Word {
 	simple: string;
 	normalizedSimple: string;
-	uthmaniIndex: number; // index into verse.uthmaniWords
+	uthmaniIndex: number; // index into verse.uthmani.split(/\s+/)
 }
 
 export interface Verse {
 	number: number;
 	uthmani: string;
-	simple: string;
 	words: Word[]; // one per simple word; uthmaniIndex points into uthmani.split(/\s+/)
-	simpleWordCount: number;
 }
 
 export interface Surah {

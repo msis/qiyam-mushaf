@@ -30,7 +30,7 @@
 		if (!matched) return false;
 		const verse = currentSurah?.verses[appState.currentVerseNum - 1];
 		if (!verse) return false;
-		return matched.size >= verse.simpleWordCount;
+		return matched.size >= verse.words.length;
 	}
 
 	function advanceToNextVerse(): void {

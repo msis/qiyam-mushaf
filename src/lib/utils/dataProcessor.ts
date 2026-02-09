@@ -34,9 +34,7 @@ export function processQuranData(rawData: QuranRawData): QuranData {
 			return {
 				number: verseIndex + 1,
 				uthmani: uthmaniText,
-				simple: simpleText,
-				words,
-				simpleWordCount: words.filter((w) => w.simple.length > 0).length
+				words
 			};
 		});
 

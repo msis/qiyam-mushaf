@@ -25,10 +25,11 @@ describe('processQuranData', () => {
 
 describe('word mapping', () => {
 	it('every verse has words.length === simple word count', () => {
-		for (const surah of data.surahs) {
-			for (const verse of surah.verses) {
-				const expected = verse.simple.trim().split(/\s+/).length;
-				expect(verse.words.length, `${surah.number}:${verse.number}`).toBe(expected);
+		for (let i = 0; i < data.surahs.length; i++) {
+			for (let j = 0; j < data.surahs[i].verses.length; j++) {
+				const verse = data.surahs[i].verses[j];
+				const expected = simple[i][j].trim().split(/\s+/).length;
+				expect(verse.words.length, `${data.surahs[i].number}:${verse.number}`).toBe(expected);
 			}
 		}
 	});
@@ -57,15 +58,6 @@ describe('word mapping', () => {
 		}
 	});
 
-	it('simpleWordCount matches non-empty words', () => {
-		for (const surah of data.surahs) {
-			for (const verse of surah.verses) {
-				const nonEmpty = verse.words.filter((w) => w.simple.length > 0).length;
-				expect(verse.simpleWordCount, `${surah.number}:${verse.number}`).toBe(nonEmpty);
-			}
-		}
-	});
-
 	it('6234 verses have exact alignment, only 20:94 and 72:16 have a deficit', () => {
 		// Recount expected simple words per uthmani token using the same rules as dataProcessor
 		const MARKS = new Set(['\u06D6','\u06D7','\u06D8','\u06D9','\u06DA','\u06DB','\u06DC','\u06DE','\u06E9']);
@@ -78,12 +70,13 @@ describe('word mapping', () => {
 		}
 
 		const deficitVerses: string[] = [];
-		for (const surah of data.surahs) {
-			for (const verse of surah.verses) {
+		for (let i = 0; i < data.surahs.length; i++) {
+			for (let j = 0; j < data.surahs[i].verses.length; j++) {
+				const verse = data.surahs[i].verses[j];
 				const uTokens = verse.uthmani.trim().split(/\s+/);
 				const predicted = uTokens.reduce((sum, t) => sum + expectedSimple(t), 0);
-				const actual = verse.simple.trim().split(/\s+/).length;
-				if (predicted !== actual) deficitVerses.push(`${surah.number}:${verse.number}`);
+				const actual = simple[i][j].trim().split(/\s+/).length;
+				if (predicted !== actual) deficitVerses.push(`${data.surahs[i].number}:${verse.number}`);
 			}
 		}
 		expect(deficitVerses).toEqual(['20:94', '72:16']);

@@ -48,7 +48,7 @@ The app uses two parallel Quran text sources:
 - `quran-uthmani-list.json` - Full Uthmani script with diacritics (tashkeel) for **display**
 - `quran-simple-clean-list.json` - Simplified Arabic without diacritics for **speech matching**
 
-Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.ts` merges them into a unified structure where each word has both `uthmani` and `simple` variants.
+Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.ts` builds a many-to-one mapping: each simple word gets an `uthmaniIndex` pointing into `verse.uthmani.split(/\s+/)`. Tajweed marks are skipped (no Word points to them); vocative merges produce two Words sharing the same uthmani index.
 
 ### Key Services (Singletons)
 
@@ -74,15 +74,18 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 ### Data Flow
 
 1. User speaks → SpeechRecognitionService emits transcript
-2. `+page.svelte` passes transcript to `matchSpokenWords()` with current verse
-3. Matched word indices stored in `highlightedWords` state (GlobalVerseKey → Set of wordIndices)
-4. When all words matched, `$effect` in `+page.svelte` triggers `advanceToNextVerse()`
+2. `+page.svelte` passes transcript to `matchSpokenWords()` with current verse's `words[]`
+3. Matched simple-word indices stored in `highlightedWords` (GlobalVerseKey → Set of simple indices)
+4. `VerseRow` derives uthmani highlight set: converts simple indices → uthmani indices via `word.uthmaniIndex`
+5. When `matched.size >= verse.words.length`, `$effect` triggers `advanceToNextVerse()`
 
 ## Type Definitions
 
 All types in `src/lib/types/index.ts`:
 
-- `Surah`, `Verse`, `Word` - Core data structures
+- `Word` `{simple, normalizedSimple, uthmaniIndex}` - Simple word with pointer to uthmani display token
+- `Verse` `{number, uthmani, words}` - Verse text and word mappings
+- `Surah` - Surah metadata and verses
 - `SpeechRecognitionResult`, `SpeechRecognitionCallbacks` - Speech API types
 - `GlobalHighlightedWords` - Map of GlobalVerseKey to Set of highlighted word indices
 - `RenderableItem`, `LookupMaps` - Virtual scrolling support types
@@ -95,3 +98,5 @@ All types in `src/lib/types/index.ts`:
 - `LANGUAGE_CODE` - Arabic locale for speech recognition (`ar-SA`)
 - `SIMILARITY_THRESHOLD` - Levenshtein match threshold (0.7)
 - `DB_NAME`, `DB_VERSION`, `STORE_NAME`, `CACHE_KEY` - IndexedDB configuration
+- `TAJWEED_MARKS` - Set of 9 standalone tajweed/juz mark codepoints in uthmani text
+- `VERSE_ADVANCE_DELAY`, `ERROR_DISMISS_DELAY` - UI timing constants (ms)
