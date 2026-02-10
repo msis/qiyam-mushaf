@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { base } from '$app/paths';
 </script>
 
 <div class="h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -29,7 +30,7 @@
 		</p>
 
 		<a
-			href="/"
+			href="{base}/"
 			class="inline-block bg-amber-600 hover:bg-amber-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
 		>
 			Return Home
