@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { VList, type VListHandle } from 'virtua/svelte';
-	import type { RenderableItem, GlobalVerseKey, GlobalHighlightedWords } from '$lib/types';
+	import type { RenderableItem, GlobalVerseKey } from '$lib/types';
 	import Bismillah from './Bismillah.svelte';
 	import SurahHeader from './SurahHeader.svelte';
 	import VerseRow from './VerseRow.svelte';
@@ -8,11 +8,11 @@
 	interface Props {
 		items: RenderableItem[];
 		currentVerseKey: GlobalVerseKey | null;
-		highlightedWords: GlobalHighlightedWords;
+		nextWordIndex: number;
 		onVerseClick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { items, currentVerseKey, highlightedWords, onVerseClick }: Props = $props();
+	let { items, currentVerseKey, nextWordIndex, onVerseClick }: Props = $props();
 
 	const ITEM_GAP = 8;
 
@@ -39,12 +39,14 @@
 			{:else if item.type === 'bismillah'}
 				<Bismillah />
 			{:else if item.type === 'verse'}
+				{@const isActive = currentVerseKey === item.verseKey}
+				{@const offset = item.verse.words[0]?.globalIndex ?? 0}
 				<VerseRow
 					verse={item.verse}
 					verseKey={item.verseKey}
 					surahNumber={item.surahNumber}
-					isCurrentVerse={currentVerseKey === item.verseKey}
-					highlightedWordIndices={highlightedWords[item.verseKey]}
+					isCurrentVerse={isActive}
+					highlightedCount={isActive ? Math.max(0, Math.min(item.verse.words.length, nextWordIndex - offset)) : 0}
 					onclick={onVerseClick}
 				/>
 			{/if}

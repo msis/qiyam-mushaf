@@ -1,5 +1,4 @@
 import type { Surah, GlobalVerseKey, RenderableItem, LookupMaps } from '$lib/types';
-import { SURAH_COUNT } from './constants';
 
 /**
  * Convert surah and verse numbers to a global key string
@@ -81,33 +80,4 @@ export function buildLookupMaps(items: RenderableItem[]): LookupMaps {
 	return { keyToIndex, indexToKey };
 }
 
-/**
- * Get the next verse coordinates, handling cross-surah boundaries.
- * Returns null if we're at the end of the Quran (114:6).
- */
-export function getNextVerse(
-	surahs: Surah[],
-	currentSurah: number,
-	currentVerse: number
-): { surah: number; verse: number } | null {
-	const surahIndex = currentSurah - 1;
-	const surah = surahs[surahIndex];
-
-	if (!surah) {
-		return null;
-	}
-
-	// Check if there's a next verse in the current surah
-	if (currentVerse < surah.verseCount) {
-		return { surah: currentSurah, verse: currentVerse + 1 };
-	}
-
-	// Move to the next surah
-	if (currentSurah < SURAH_COUNT) {
-		return { surah: currentSurah + 1, verse: 1 };
-	}
-
-	// End of Quran
-	return null;
-}
 

@@ -120,7 +120,7 @@ export const LANGUAGE_CODE = 'ar-SA';
 
 // IndexedDB configuration
 export const DB_NAME = 'quran-teleprompter';
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 export const STORE_NAME = 'cache';
 export const CACHE_KEY = 'quran-data';
 
@@ -128,7 +128,6 @@ export const CACHE_KEY = 'quran-data';
 export const SIMILARITY_THRESHOLD = 0.7; // Minimum similarity ratio (0-1) for Levenshtein matching
 
 // Timing configuration (ms)
-export const VERSE_ADVANCE_DELAY = 500;
 export const ERROR_DISMISS_DELAY = 3000;
 
 // Standalone tajweed/juz mark codepoints that appear as whitespace-delimited tokens in uthmani

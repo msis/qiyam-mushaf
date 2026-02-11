@@ -1,6 +1,9 @@
 import type { QuranRawData, QuranData, Surah, Verse, Word } from '$lib/types';
 import { SURAH_NAMES, TAJWEED_MARKS } from './constants';
+import { toGlobalKey } from './globalAddressing';
 import { normalizeArabicWord } from './wordMatcher';
+
+type WordBase = Pick<Word, 'simple' | 'normalizedSimple' | 'uthmaniIndex'>;
 
 function isMark(word: string): boolean {
 	for (const ch of word) {
@@ -20,6 +23,8 @@ function simpleWordsPerToken(token: string): number {
 
 export function processQuranData(rawData: QuranRawData): QuranData {
 	const surahs: Surah[] = [];
+	const allWords: Word[] = [];
+	let globalIdx = 0;
 
 	for (let i = 0; i < rawData.uthmani.length; i++) {
 		const surahInfo = SURAH_NAMES[i];
@@ -29,7 +34,15 @@ export function processQuranData(rawData: QuranRawData): QuranData {
 		const verses: Verse[] = uthmaniVerses.map((uthmaniText, verseIndex) => {
 			const simpleText = simpleVerses[verseIndex];
 			const uthmaniWords = uthmaniText.trim().split(/\s+/);
-			const words = buildWordMapping(uthmaniWords, simpleText);
+			const bases = buildWordMapping(uthmaniWords, simpleText);
+			const verseKey = toGlobalKey(surahInfo.number, verseIndex + 1);
+
+			const words: Word[] = [];
+			for (const base of bases) {
+				const word: Word = { ...base, verseKey, globalIndex: globalIdx++ };
+				words.push(word);
+				allWords.push(word);
+			}
 
 			return {
 				number: verseIndex + 1,
@@ -47,13 +60,13 @@ export function processQuranData(rawData: QuranRawData): QuranData {
 		});
 	}
 
-	return { surahs };
+	return { surahs, allWords };
 }
 
 /** Map each simple word to its uthmani token index. */
-function buildWordMapping(uthmaniWords: string[], simpleText: string): Word[] {
+function buildWordMapping(uthmaniWords: string[], simpleText: string): WordBase[] {
 	const simpleWords = simpleText.trim().split(/\s+/);
-	const words: Word[] = [];
+	const words: WordBase[] = [];
 	let simpleIdx = 0;
 
 	for (let uIdx = 0; uIdx < uthmaniWords.length; uIdx++) {

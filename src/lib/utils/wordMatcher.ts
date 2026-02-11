@@ -1,61 +1,37 @@
 import { distance } from "fastest-levenshtein";
-import type { Verse } from "$lib/types";
+import type { Word } from "$lib/types";
 import { SIMILARITY_THRESHOLD } from "./constants";
 
-export interface MatchedWords {
-  [verseIndex: number]: Set<number>;
-}
-
-export function matchSpokenWords(
+/**
+ * Match spoken words sequentially against the global word list starting from `anchor`.
+ * Returns the new cursor position (first unmatched global index).
+ *
+ * The transcript is re-matched from the anchor on every call, so interim speech
+ * revisions are handled correctly — the cursor can advance or regress within a session.
+ */
+export function matchWords(
   transcript: string,
-  verses: Verse[],
-  currentVerseIndex: number,
-): MatchedWords {
-  const matches: MatchedWords = {};
-
+  words: Word[],
+  anchor: number,
+): number {
   const spokenWords = transcript
     .trim()
     .split(/\s+/)
-    .filter((word) => word.length > 0);
+    .filter((w) => w.length > 0);
 
-  const currentVerse = verses[currentVerseIndex];
-  if (!currentVerse) {
-    return matches;
-  }
+  let cursor = anchor;
 
-  const verseMatches = new Set<number>();
-
-  for (const spokenWord of spokenWords) {
-    const cleanedSpokenWord = normalizeArabicWord(spokenWord);
-    let matched = false;
-
-    for (
-      let wordIndex = 0;
-      wordIndex < currentVerse.words.length;
-      wordIndex++
-    ) {
-      if (verseMatches.has(wordIndex)) {
-        continue;
-      }
-
-      // Use precomputed normalized form instead of normalizing on every call
-      const cleanedQuranWord = currentVerse.words[wordIndex].normalizedSimple;
-
-      if (wordsMatch(cleanedSpokenWord, cleanedQuranWord)) {
-        verseMatches.add(wordIndex);
-        matched = true;
-        break;
-      }
-    }
-
-    if (!matched) {
+  for (const spoken of spokenWords) {
+    if (cursor >= words.length) break;
+    const normalized = normalizeArabicWord(spoken);
+    if (wordsMatch(normalized, words[cursor].normalizedSimple)) {
+      cursor++;
+    } else {
       break;
     }
   }
 
-  matches[currentVerseIndex] = verseMatches;
-
-  return matches;
+  return cursor;
 }
 
 export function normalizeArabicWord(word: string): string {

@@ -74,20 +74,21 @@ Both are 2D arrays: `[surahIndex][verseIndex] = verseText`. The `dataProcessor.t
 ### Data Flow
 
 1. User speaks → SpeechRecognitionService emits transcript
-2. `+page.svelte` passes transcript to `matchSpokenWords()` with current verse's `words[]`
-3. Matched simple-word indices stored in `highlightedWords` (GlobalVerseKey → Set of simple indices)
-4. `VerseRow` derives uthmani highlight set: converts simple indices → uthmani indices via `word.uthmaniIndex`
-5. When `matched.size >= verse.words.length`, `$effect` triggers `advanceToNextVerse()`
+2. `+page.svelte` passes transcript to `matchWords()` with `allWords` and a session anchor
+3. `matchWords` returns a new `nextWordIndex` (first unmatched global word index)
+4. `allWords[nextWordIndex].verseKey` gives O(1) current verse position
+5. `VerseRow` computes `highlightedCount` from `nextWordIndex - verse.words[0].globalIndex`
+6. `VerseRow` derives uthmani highlight set: converts contiguous simple count → uthmani indices via `word.uthmaniIndex`
 
 ## Type Definitions
 
 All types in `src/lib/types/index.ts`:
 
-- `Word` `{simple, normalizedSimple, uthmaniIndex}` - Simple word with pointer to uthmani display token
+- `Word` `{simple, normalizedSimple, uthmaniIndex, globalIndex, verseKey}` - Self-describing word with pointers to uthmani token, global position, and parent verse
 - `Verse` `{number, uthmani, words}` - Verse text and word mappings
 - `Surah` - Surah metadata and verses
+- `QuranData` `{surahs, allWords}` - Processed data with flat word sequence for O(1) global index lookup
 - `SpeechRecognitionResult`, `SpeechRecognitionCallbacks` - Speech API types
-- `GlobalHighlightedWords` - Map of GlobalVerseKey to Set of highlighted word indices
 - `RenderableItem`, `LookupMaps` - Virtual scrolling support types
 
 ## Constants
@@ -99,4 +100,4 @@ All types in `src/lib/types/index.ts`:
 - `SIMILARITY_THRESHOLD` - Levenshtein match threshold (0.7)
 - `DB_NAME`, `DB_VERSION`, `STORE_NAME`, `CACHE_KEY` - IndexedDB configuration
 - `TAJWEED_MARKS` - Set of 9 standalone tajweed/juz mark codepoints in uthmani text
-- `VERSE_ADVANCE_DELAY`, `ERROR_DISMISS_DELAY` - UI timing constants (ms)
+- `ERROR_DISMISS_DELAY` - UI timing constant (ms)

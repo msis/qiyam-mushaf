@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { SvelteSet } from 'svelte/reactivity';
 	import type { Verse, GlobalVerseKey } from '$lib/types';
 
 	interface Props {
@@ -7,20 +6,20 @@
 		verseKey: GlobalVerseKey;
 		surahNumber: number;
 		isCurrentVerse: boolean;
-		highlightedWordIndices?: Set<number>;
+		highlightedCount: number;
 		onclick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedWordIndices, onclick }: Props = $props();
+	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedCount, onclick }: Props = $props();
 
 	const uthmaniWords = $derived(verse.uthmani.trim().split(/\s+/));
 
-	// Convert simple-word indices → uthmani-word indices for highlighting
+	// Convert contiguous simple-word count → uthmani index set for highlighting
 	const highlightedUthmaniSet = $derived.by(() => {
-		if (!highlightedWordIndices) return undefined;
-		const set = new SvelteSet<number>();
-		for (const simpleIdx of highlightedWordIndices) {
-			const word = verse.words[simpleIdx];
+		if (highlightedCount <= 0) return undefined;
+		const set = new Set<number>();
+		for (let i = 0; i < highlightedCount; i++) {
+			const word = verse.words[i];
 			if (word) set.add(word.uthmaniIndex);
 		}
 		return set;
@@ -41,9 +40,7 @@
 	role="button"
 	tabindex="0"
 >
-	<!-- Arabic text - centered, RTL, with verse number on the right -->
 	<p class="text-2xl leading-relaxed font-arabic text-center" dir="rtl">
-		<!-- Verse number first in markup = right side visually in RTL -->
 		<span
 			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ml-2 align-middle {isCurrentVerse
 				? 'bg-amber-600 text-white'
