@@ -82,15 +82,15 @@
 
 	// --- User-initiated navigation ---
 
-	function navigateToVerse(surahNum: number, verseNum: number): void {
-		if (speechStore.isListening) speechStore.stop();
+	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
 		appState.nextWordIndex = targetVerse?.words[0]?.globalIndex ?? 0;
+		sessionAnchor = appState.nextWordIndex;
 	}
 
-	function handleVerseClick(surahNum: number, verseNum: number): void {
-		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
-		appState.nextWordIndex = targetVerse?.words[0]?.globalIndex ?? 0;
+	function navigateToVerse(surahNum: number, verseNum: number): void {
+		if (speechStore.isListening) speechStore.stop();
+		setCursorToVerse(surahNum, verseNum);
 	}
 
 	function toggleRecognition(): void {
@@ -163,7 +163,7 @@
 			items={data.renderableItems}
 			{currentVerseKey}
 			nextWordIndex={appState.nextWordIndex}
-			onVerseClick={handleVerseClick}
+			onVerseClick={setCursorToVerse}
 		/>
 	</div>
 
