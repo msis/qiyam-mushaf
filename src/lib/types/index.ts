@@ -2,6 +2,8 @@ export interface Word {
 	simple: string;
 	normalizedSimple: string;
 	uthmaniIndex: number; // index into verse.uthmani.split(/\s+/)
+	globalIndex: number; // position in the full Quran word sequence
+	verseKey: GlobalVerseKey; // which verse this word belongs to
 }
 
 export interface Verse {
@@ -20,6 +22,7 @@ export interface Surah {
 
 export interface QuranData {
 	surahs: Surah[];
+	allWords: Word[]; // flat sequence of every word in the Quran, ordered by globalIndex
 }
 
 export interface QuranRawData {
@@ -51,10 +54,6 @@ export interface SpeechRecognitionCallbacks {
 // Global addressing types for full Quran continuous scroll
 export type GlobalVerseKey = `${number}:${number}`; // "surah:verse" e.g., "2:255"
 
-export interface GlobalHighlightedWords {
-	[verseKey: GlobalVerseKey]: Set<number>;
-}
-
 interface RenderableBase {
 	index: number;
 	surahNumber: number;
@@ -67,5 +66,4 @@ export type RenderableItem =
 
 export interface LookupMaps {
 	keyToIndex: Map<GlobalVerseKey, number>;
-	indexToKey: Map<number, { surah: number; verse: number }>;
 }

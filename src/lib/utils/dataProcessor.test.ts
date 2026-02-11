@@ -46,6 +46,22 @@ describe('word mapping', () => {
 		}
 	});
 
+	it('globalIndex is contiguous, allWords matches, and verseKey is correct', () => {
+		let expectedIdx = 0;
+		for (const surah of data.surahs) {
+			for (const verse of surah.verses) {
+				const expectedKey = `${surah.number}:${verse.number}`;
+				for (const word of verse.words) {
+					expect(word.globalIndex, expectedKey).toBe(expectedIdx);
+					expect(word.verseKey, expectedKey).toBe(expectedKey);
+					expect(data.allWords[expectedIdx]).toBe(word);
+					expectedIdx++;
+				}
+			}
+		}
+		expect(data.allWords).toHaveLength(expectedIdx);
+	});
+
 	it('every word has a non-empty normalizedSimple', () => {
 		for (const surah of data.surahs) {
 			for (const verse of surah.verses) {

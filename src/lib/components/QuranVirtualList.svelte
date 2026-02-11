@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { VList, type VListHandle } from 'virtua/svelte';
-	import type { RenderableItem, GlobalVerseKey, GlobalHighlightedWords } from '$lib/types';
+	import type { RenderableItem, GlobalVerseKey } from '$lib/types';
 	import Bismillah from './Bismillah.svelte';
 	import SurahHeader from './SurahHeader.svelte';
 	import VerseRow from './VerseRow.svelte';
@@ -8,13 +8,15 @@
 	interface Props {
 		items: RenderableItem[];
 		currentVerseKey: GlobalVerseKey | null;
-		highlightedWords: GlobalHighlightedWords;
+		nextWordIndex: number;
 		onVerseClick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { items, currentVerseKey, highlightedWords, onVerseClick }: Props = $props();
+	let { items, currentVerseKey, nextWordIndex, onVerseClick }: Props = $props();
 
 	const ITEM_GAP = 8;
+	const TOP_PADDING = 70; // clears fixed position badge
+	const BOTTOM_PADDING = 100; // clears fixed record button
 
 	let vlist: VListHandle | undefined = $state();
 
@@ -32,19 +34,21 @@
 	{#snippet children(item, index)}
 		<div
 			class="max-w-3xl mx-auto px-4"
-			style="padding-bottom: {index === items.length - 1 ? 100 : ITEM_GAP}px;{index === 0 ? ' padding-top: 70px;' : ''}"
+			style="padding-bottom: {index === items.length - 1 ? BOTTOM_PADDING : ITEM_GAP}px;{index === 0 ? ` padding-top: ${TOP_PADDING}px;` : ''}"
 		>
 			{#if item.type === 'surah-header'}
 				<SurahHeader surah={item.surahData} />
 			{:else if item.type === 'bismillah'}
 				<Bismillah />
 			{:else if item.type === 'verse'}
+				{@const isActive = currentVerseKey === item.verseKey}
+				{@const offset = item.verse.words[0]?.globalIndex ?? 0}
 				<VerseRow
 					verse={item.verse}
 					verseKey={item.verseKey}
 					surahNumber={item.surahNumber}
-					isCurrentVerse={currentVerseKey === item.verseKey}
-					highlightedWordIndices={highlightedWords[item.verseKey]}
+					isCurrentVerse={isActive}
+					highlightedCount={isActive ? Math.max(0, Math.min(item.verse.words.length, nextWordIndex - offset)) : 0}
 					onclick={onVerseClick}
 				/>
 			{/if}
