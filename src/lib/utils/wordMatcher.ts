@@ -1,3 +1,4 @@
+import { distance } from "fastest-levenshtein";
 import type { Verse } from "$lib/types";
 import { SIMILARITY_THRESHOLD } from "./constants";
 
@@ -81,32 +82,6 @@ function wordsMatch(spoken: string, quran: string): boolean {
 }
 
 function calculateSimilarity(word1: string, word2: string): number {
-  if (word1 === word2) return 1;
   if (word1.length === 0 || word2.length === 0) return 0;
-
-  const len1 = word1.length;
-  const len2 = word2.length;
-
-  // Two-row Levenshtein: O(min(n,m)) memory instead of O(n*m)
-  let prev = new Array<number>(len2 + 1);
-  let curr = new Array<number>(len2 + 1);
-
-  for (let j = 0; j <= len2; j++) prev[j] = j;
-
-  for (let i = 1; i <= len1; i++) {
-    curr[0] = i;
-    for (let j = 1; j <= len2; j++) {
-      if (word1[i - 1] === word2[j - 1]) {
-        curr[j] = prev[j - 1];
-      } else {
-        curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + 1);
-      }
-    }
-    [prev, curr] = [curr, prev];
-  }
-
-  const distance = prev[len2];
-  const maxLength = Math.max(len1, len2);
-
-  return 1 - distance / maxLength;
+  return 1 - distance(word1, word2) / Math.max(word1.length, word2.length);
 }
