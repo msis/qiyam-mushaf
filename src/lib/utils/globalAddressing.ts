@@ -59,25 +59,18 @@ export function buildRenderableItems(surahs: Surah[]): RenderableItem[] {
 }
 
 /**
- * Build O(1) lookup maps for fast conversion between global keys and flat indices.
- * - keyToIndex: "2:255" → flat index number
- * - indexToKey: flat index → { surah, verse } (only for verse items)
+ * Build O(1) lookup map: "2:255" → flat index number for virtual list scrolling.
  */
 export function buildLookupMaps(items: RenderableItem[]): LookupMaps {
 	const keyToIndex = new Map<GlobalVerseKey, number>();
-	const indexToKey = new Map<number, { surah: number; verse: number }>();
 
 	for (const item of items) {
 		if (item.type === 'verse') {
 			keyToIndex.set(item.verseKey, item.index);
-			indexToKey.set(item.index, {
-				surah: item.surahNumber,
-				verse: item.verse.number
-			});
 		}
 	}
 
-	return { keyToIndex, indexToKey };
+	return { keyToIndex };
 }
 
 

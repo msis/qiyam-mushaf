@@ -66,5 +66,4 @@ export type RenderableItem =
 
 export interface LookupMaps {
 	keyToIndex: Map<GlobalVerseKey, number>;
-	indexToKey: Map<number, { surah: number; verse: number }>;
 }

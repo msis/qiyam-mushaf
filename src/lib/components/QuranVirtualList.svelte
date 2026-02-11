@@ -15,6 +15,8 @@
 	let { items, currentVerseKey, nextWordIndex, onVerseClick }: Props = $props();
 
 	const ITEM_GAP = 8;
+	const TOP_PADDING = 70; // clears fixed position badge
+	const BOTTOM_PADDING = 100; // clears fixed record button
 
 	let vlist: VListHandle | undefined = $state();
 
@@ -32,7 +34,7 @@
 	{#snippet children(item, index)}
 		<div
 			class="max-w-3xl mx-auto px-4"
-			style="padding-bottom: {index === items.length - 1 ? 100 : ITEM_GAP}px;{index === 0 ? ' padding-top: 70px;' : ''}"
+			style="padding-bottom: {index === items.length - 1 ? BOTTOM_PADDING : ITEM_GAP}px;{index === 0 ? ` padding-top: ${TOP_PADDING}px;` : ''}"
 		>
 			{#if item.type === 'surah-header'}
 				<SurahHeader surah={item.surahData} />
