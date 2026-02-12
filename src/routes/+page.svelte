@@ -1,77 +1,77 @@
 <script lang="ts">
 	import { appState } from '$lib/stores/app.svelte';
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
-	import { toGlobalKey, getNextVerse } from '$lib/utils/globalAddressing';
-	import { matchSpokenWords } from '$lib/utils/wordMatcher';
+	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
+	import { matchWords } from '$lib/utils/wordMatcher';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
+	import { untrack } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import { VERSE_ADVANCE_DELAY, ERROR_DISMISS_DELAY } from '$lib/utils/constants';
-	import type { GlobalHighlightedWords } from '$lib/types';
+	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
+	import type { GlobalVerseKey } from '$lib/types';
 
 	let { data } = $props();
 
 	const speechStore = getSpeechStore();
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
-	const currentSurah = $derived(data.surahs[appState.currentSurahNum - 1] ?? null);
+	// --- Derived position from nextWordIndex (O(1) field read) ---
 
-	function scrollToVerse(surah: number, verse: number): void {
-		const flatIndex = data.lookupMaps.keyToIndex.get(toGlobalKey(surah, verse));
+	const currentWord = $derived(
+		data.allWords[Math.min(appState.nextWordIndex, data.allWords.length - 1)]
+	);
+
+	const currentVerseKey: GlobalVerseKey = $derived(
+		currentWord?.verseKey ?? toGlobalKey(1, 1)
+	);
+
+	const currentPosition = $derived(fromGlobalKey(currentVerseKey));
+	const currentSurah = $derived(data.surahs[currentPosition.surah - 1] ?? null);
+
+	// --- Scroll helper ---
+
+	function scrollToVerse(key: GlobalVerseKey): void {
+		const flatIndex = data.lookupMaps.keyToIndex.get(key);
 		if (flatIndex !== undefined && virtualListRef) {
 			virtualListRef.scrollToIndex(flatIndex);
 		}
 	}
 
-	function isVerseComplete(highlights: GlobalHighlightedWords): boolean {
-		const key = appState.currentVerseKey;
-		if (!key) return false;
-		const matched = highlights[key];
-		if (!matched) return false;
-		const verse = currentSurah?.verses[appState.currentVerseNum - 1];
-		if (!verse) return false;
-		return matched.size >= verse.words.length;
-	}
-
-	function advanceToNextVerse(): void {
-		const next = getNextVerse(data.surahs, appState.currentSurahNum, appState.currentVerseNum);
-		if (!next) return;
-		appState.setPosition(next.surah, next.verse);
-		scrollToVerse(next.surah, next.verse);
-	}
-
 	// --- Reactive effects ---
 
-	// Match spoken words against current verse
+	// Session anchor: where matching starts for the current recognition session.
+	// Re-matching the full transcript from the anchor on every interim result
+	// handles speech API revisions correctly.
+	let sessionAnchor = 0;
+
+	$effect(() => {
+		if (speechStore.status === 'listening') {
+			sessionAnchor = untrack(() => appState.nextWordIndex);
+		}
+	});
+
+	// Match spoken words against global word list.
+	// On final results, advance the anchor so the next utterance starts from here.
 	$effect(() => {
 		const transcript = speechStore.transcript;
 		if (!transcript || transcript.trim().length === 0) return;
 
-		const currentVerseIndex = appState.currentVerseNum - 1;
+		const newIndex = matchWords(transcript, data.allWords, sessionAnchor);
+		appState.nextWordIndex = newIndex;
 
-		if (currentSurah) {
-			const localMatches = matchSpokenWords(transcript, currentSurah.verses, currentVerseIndex);
-
-			const globalMatches: GlobalHighlightedWords = {};
-			for (const [verseIdx, wordSet] of Object.entries(localMatches)) {
-				const verseNumber = Number(verseIdx) + 1;
-				const key = toGlobalKey(appState.currentSurahNum, verseNumber);
-				globalMatches[key] = wordSet as Set<number>;
-			}
-
-			appState.highlightedWords = globalMatches;
-
-			if (isVerseComplete(globalMatches)) {
-				const timeoutId = setTimeout(() => advanceToNextVerse(), VERSE_ADVANCE_DELAY);
-				return () => clearTimeout(timeoutId);
-			}
+		if (speechStore.lastResult?.isFinal) {
+			sessionAnchor = newIndex;
 		}
 	});
 
-	// Clear highlights when recognition starts
+	// Auto-scroll when current verse changes
+	let lastScrolledKey: GlobalVerseKey | null = null;
+
 	$effect(() => {
-		if (speechStore.status === 'listening') {
-			appState.clearHighlights();
+		const key = currentVerseKey;
+		if (key !== lastScrolledKey) {
+			lastScrolledKey = key;
+			scrollToVerse(key);
 		}
 	});
 
@@ -84,14 +84,15 @@
 
 	// --- User-initiated navigation ---
 
-	function navigateToVerse(surah: number, verse: number): void {
-		if (speechStore.isListening) speechStore.stop();
-		appState.setPosition(surah, verse);
-		scrollToVerse(surah, verse);
+	function setCursorToVerse(surahNum: number, verseNum: number): void {
+		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
+		appState.nextWordIndex = targetVerse?.words[0]?.globalIndex ?? 0;
+		sessionAnchor = appState.nextWordIndex;
 	}
 
-	function handleVerseClick(surah: number, verse: number): void {
-		appState.setPosition(surah, verse);
+	function navigateToVerse(surahNum: number, verseNum: number): void {
+		if (speechStore.isListening) speechStore.stop();
+		setCursorToVerse(surahNum, verseNum);
 	}
 
 	function toggleRecognition(): void {
@@ -119,7 +120,7 @@
 
 	<div class="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg">
 		<span class="text-amber-100 text-sm font-medium">
-			{currentSurah?.name} ({appState.currentSurahNum}:{appState.currentVerseNum})
+			{currentSurah?.name} ({currentPosition.surah}:{currentPosition.verse})
 		</span>
 	</div>
 
@@ -162,9 +163,9 @@
 		<QuranVirtualList
 			bind:this={virtualListRef}
 			items={data.renderableItems}
-			currentVerseKey={appState.currentVerseKey}
-			highlightedWords={appState.highlightedWords}
-			onVerseClick={handleVerseClick}
+			{currentVerseKey}
+			nextWordIndex={appState.nextWordIndex}
+			onVerseClick={setCursorToVerse}
 		/>
 	</div>
 
@@ -172,8 +173,8 @@
 		<NavigationModal
 			onClose={() => (appState.isModalOpen = false)}
 			surahs={data.surahs}
-			selectedSurah={appState.currentSurahNum}
-			selectedVerse={appState.currentVerseNum}
+			selectedSurah={currentPosition.surah}
+			selectedVerse={currentPosition.verse}
 			onNavigate={navigateToVerse}
 		/>
 	{/if}

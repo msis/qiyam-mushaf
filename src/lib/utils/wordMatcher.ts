@@ -1,60 +1,37 @@
-import type { Verse } from "$lib/types";
+import { distance } from "fastest-levenshtein";
+import type { Word } from "$lib/types";
 import { SIMILARITY_THRESHOLD } from "./constants";
 
-export interface MatchedWords {
-  [verseIndex: number]: Set<number>;
-}
-
-export function matchSpokenWords(
+/**
+ * Match spoken words sequentially against the global word list starting from `anchor`.
+ * Returns the new cursor position (first unmatched global index).
+ *
+ * The transcript is re-matched from the anchor on every call, so interim speech
+ * revisions are handled correctly — the cursor can advance or regress within a session.
+ */
+export function matchWords(
   transcript: string,
-  verses: Verse[],
-  currentVerseIndex: number,
-): MatchedWords {
-  const matches: MatchedWords = {};
-
+  words: Word[],
+  anchor: number,
+): number {
   const spokenWords = transcript
     .trim()
     .split(/\s+/)
-    .filter((word) => word.length > 0);
+    .filter((w) => w.length > 0);
 
-  const currentVerse = verses[currentVerseIndex];
-  if (!currentVerse) {
-    return matches;
-  }
+  let cursor = Math.max(0, Math.min(anchor, words.length));
 
-  const verseMatches = new Set<number>();
-
-  for (const spokenWord of spokenWords) {
-    const cleanedSpokenWord = normalizeArabicWord(spokenWord);
-    let matched = false;
-
-    for (
-      let wordIndex = 0;
-      wordIndex < currentVerse.words.length;
-      wordIndex++
-    ) {
-      if (verseMatches.has(wordIndex)) {
-        continue;
-      }
-
-      // Use precomputed normalized form instead of normalizing on every call
-      const cleanedQuranWord = currentVerse.words[wordIndex].normalizedSimple;
-
-      if (wordsMatch(cleanedSpokenWord, cleanedQuranWord)) {
-        verseMatches.add(wordIndex);
-        matched = true;
-        break;
-      }
-    }
-
-    if (!matched) {
+  for (const spoken of spokenWords) {
+    if (cursor >= words.length) break;
+    const normalized = normalizeArabicWord(spoken);
+    if (wordsMatch(normalized, words[cursor].normalizedSimple)) {
+      cursor++;
+    } else {
       break;
     }
   }
 
-  matches[currentVerseIndex] = verseMatches;
-
-  return matches;
+  return cursor;
 }
 
 export function normalizeArabicWord(word: string): string {
@@ -81,32 +58,6 @@ function wordsMatch(spoken: string, quran: string): boolean {
 }
 
 function calculateSimilarity(word1: string, word2: string): number {
-  if (word1 === word2) return 1;
   if (word1.length === 0 || word2.length === 0) return 0;
-
-  const len1 = word1.length;
-  const len2 = word2.length;
-
-  // Two-row Levenshtein: O(min(n,m)) memory instead of O(n*m)
-  let prev = new Array<number>(len2 + 1);
-  let curr = new Array<number>(len2 + 1);
-
-  for (let j = 0; j <= len2; j++) prev[j] = j;
-
-  for (let i = 1; i <= len1; i++) {
-    curr[0] = i;
-    for (let j = 1; j <= len2; j++) {
-      if (word1[i - 1] === word2[j - 1]) {
-        curr[j] = prev[j - 1];
-      } else {
-        curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + 1);
-      }
-    }
-    [prev, curr] = [curr, prev];
-  }
-
-  const distance = prev[len2];
-  const maxLength = Math.max(len1, len2);
-
-  return 1 - distance / maxLength;
+  return 1 - distance(word1, word2) / Math.max(word1.length, word2.length);
 }

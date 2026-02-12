@@ -12,6 +12,7 @@ export const load: PageLoad = async () => {
 
 	return {
 		surahs: quranData.surahs,
+		allWords: quranData.allWords,
 		renderableItems,
 		lookupMaps
 	};

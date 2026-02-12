@@ -1,30 +1,35 @@
 <script lang="ts">
-	import { SvelteSet } from 'svelte/reactivity';
 	import type { Verse, GlobalVerseKey } from '$lib/types';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	interface Props {
 		verse: Verse;
 		verseKey: GlobalVerseKey;
 		surahNumber: number;
 		isCurrentVerse: boolean;
-		highlightedWordIndices?: Set<number>;
+		highlightedCount: number;
 		onclick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedWordIndices, onclick }: Props = $props();
+	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedCount, onclick }: Props = $props();
 
 	const uthmaniWords = $derived(verse.uthmani.trim().split(/\s+/));
 
-	// Convert simple-word indices → uthmani-word indices for highlighting
+	// Convert contiguous simple-word count → uthmani index set for highlighting
 	const highlightedUthmaniSet = $derived.by(() => {
-		if (!highlightedWordIndices) return undefined;
+		if (highlightedCount <= 0) return undefined;
 		const set = new SvelteSet<number>();
-		for (const simpleIdx of highlightedWordIndices) {
-			const word = verse.words[simpleIdx];
+		for (let i = 0; i < highlightedCount; i++) {
+			const word = verse.words[i];
 			if (word) set.add(word.uthmaniIndex);
 		}
 		return set;
 	});
+
+	// The frontier uthmani index — the reading position (last highlighted token)
+	const frontierUthmaniIdx = $derived(
+		highlightedCount > 0 ? (verse.words[highlightedCount - 1]?.uthmaniIndex ?? -1) : -1
+	);
 
 	function handleClick() {
 		onclick?.(surahNumber, verse.number);
@@ -34,16 +39,19 @@
 <div
 	data-verse-key={verseKey}
 	class="px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer {isCurrentVerse
-		? 'bg-amber-100 text-gray-900 shadow-xl'
+		? 'bg-gray-800/60 text-amber-50'
 		: 'text-gray-400 hover:bg-gray-800/50'}"
 	onclick={handleClick}
-	onkeydown={(e) => e.key === 'Enter' && handleClick()}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			if (e.key === ' ') e.preventDefault();
+			handleClick();
+		}
+	}}
 	role="button"
 	tabindex="0"
 >
-	<!-- Arabic text - centered, RTL, with verse number on the right -->
 	<p class="text-2xl leading-relaxed font-arabic text-center" dir="rtl">
-		<!-- Verse number first in markup = right side visually in RTL -->
 		<span
 			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ml-2 align-middle {isCurrentVerse
 				? 'bg-amber-600 text-white'
@@ -52,11 +60,15 @@
 			{surahNumber}:{verse.number}
 		</span>
 		{#each uthmaniWords as uthmaniWord, uIdx (uIdx)}
-			{@const isHighlighted = highlightedUthmaniSet?.has(uIdx)}
+			{@const isFrontier = uIdx === frontierUthmaniIdx}
+			{@const isRead = !isFrontier && (highlightedUthmaniSet?.has(uIdx) ?? false)}
 			<span
-				class="inline-block px-1 mx-0.5 rounded transition-all duration-200 {isHighlighted
-					? 'bg-amber-500 text-white font-bold scale-110'
-					: ''}"
+				class="inline-block px-1 mx-0.5 rounded transition-all duration-200"
+				style={isFrontier
+					? 'text-shadow: 0 0 10px rgba(251,191,36,0.9), 0 0 25px rgba(251,191,36,0.5), 0 0 45px rgba(251,191,36,0.2); background: linear-gradient(180deg, transparent 10%, rgba(251,191,36,0.15) 45%, rgba(251,191,36,0.15) 55%, transparent 90%);'
+					: isRead
+						? 'opacity: 0.3;'
+						: ''}
 			>
 				{uthmaniWord}
 			</span>
