@@ -19,7 +19,7 @@ export function matchWords(
     .split(/\s+/)
     .filter((w) => w.length > 0);
 
-  let cursor = anchor;
+  let cursor = Math.max(0, Math.min(anchor, words.length));
 
   for (const spoken of spokenWords) {
     if (cursor >= words.length) break;

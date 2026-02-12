@@ -42,7 +42,12 @@
 		? 'bg-gray-800/60 text-amber-50'
 		: 'text-gray-400 hover:bg-gray-800/50'}"
 	onclick={handleClick}
-	onkeydown={(e) => e.key === 'Enter' && handleClick()}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			if (e.key === ' ') e.preventDefault();
+			handleClick();
+		}
+	}}
 	role="button"
 	tabindex="0"
 >

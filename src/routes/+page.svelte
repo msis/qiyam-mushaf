@@ -17,7 +17,9 @@
 
 	// --- Derived position from nextWordIndex (O(1) field read) ---
 
-	const currentWord = $derived(data.allWords[appState.nextWordIndex]);
+	const currentWord = $derived(
+		data.allWords[Math.min(appState.nextWordIndex, data.allWords.length - 1)]
+	);
 
 	const currentVerseKey: GlobalVerseKey = $derived(
 		currentWord?.verseKey ?? toGlobalKey(1, 1)
