@@ -1,8 +1,7 @@
 import type {
 	SpeechRecognitionCallbacks,
 	SpeechRecognitionConfig,
-	RecognitionStatus,
-	SpeechRecognitionResult
+	RecognitionStatus
 } from '$lib/types';
 import { LANGUAGE_CODE } from '$lib/utils/constants';
 
@@ -43,6 +42,7 @@ export class SpeechRecognitionService {
 	private static instance: SpeechRecognitionService | undefined;
 	private recognition: SpeechRecognitionInstance | null = null;
 	private isListening = false;
+	private shouldContinue = false;
 	private callbacks: SpeechRecognitionCallbacks = {};
 
 	private constructor() {
@@ -79,14 +79,19 @@ export class SpeechRecognitionService {
 		if (!this.recognition) return;
 
 		this.recognition.onresult = (event: SpeechRecognitionEventType) => {
+			let finalTranscript = '';
+			let interimTranscript = '';
+
 			for (let i = event.resultIndex; i < event.results.length; i++) {
-				const result: SpeechRecognitionResult = {
-					transcript: event.results[i][0].transcript,
-					confidence: event.results[i][0].confidence,
-					isFinal: event.results[i].isFinal
-				};
-				this.callbacks.onResult?.(result);
+				const transcript = event.results[i][0].transcript;
+				if (event.results[i].isFinal) {
+					finalTranscript += transcript;
+				} else {
+					interimTranscript += transcript;
+				}
 			}
+
+			this.callbacks.onResult?.(finalTranscript, interimTranscript);
 		};
 
 		this.recognition.onerror = (event: SpeechRecognitionErrorEventType) => {
@@ -121,6 +126,15 @@ export class SpeechRecognitionService {
 		this.recognition.onend = () => {
 			this.isListening = false;
 			this.callbacks.onEnd?.();
+			// Auto-restart: Chrome's speech API stops spontaneously after silence
+			// or internal timeouts. Restart seamlessly if not explicitly stopped.
+			if (this.shouldContinue && this.recognition) {
+				try {
+					this.recognition.start();
+				} catch {
+					// Already running or disposed — ignore
+				}
+			}
 		};
 
 		this.recognition.onstart = () => {
@@ -155,10 +169,12 @@ export class SpeechRecognitionService {
 		this.recognition.continuous = finalConfig.continuous;
 		this.recognition.interimResults = finalConfig.interimResults;
 
+		this.shouldContinue = true;
 		this.recognition.start();
 	}
 
 	stop(): void {
+		this.shouldContinue = false;
 		if (!this.recognition || !this.isListening) {
 			return;
 		}

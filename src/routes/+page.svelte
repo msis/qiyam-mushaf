@@ -5,7 +5,6 @@
 	import { matchWords } from '$lib/utils/wordMatcher';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
-	import { untrack } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
@@ -39,29 +38,35 @@
 
 	// --- Reactive effects ---
 
-	// Session anchor: where matching starts for the current recognition session.
-	// Re-matching the full transcript from the anchor on every interim result
-	// handles speech API revisions correctly.
-	let sessionAnchor = 0;
+	// The final cursor is the stable anchor. It only advances on committed
+	// (final) speech results, preventing volatile interim results from
+	// corrupting the search window.
+	let finalCursor = $state(appState.nextWordIndex);
 
-	$effect(() => {
-		if (speechStore.status === 'listening') {
-			sessionAnchor = untrack(() => appState.nextWordIndex);
-		}
-	});
+	$inspect('final', speechStore.finalTranscript);
+	$inspect('interim', speechStore.interimTranscript);
+	$inspect('finalCursor', finalCursor);
+	$inspect('nextWordIndex', appState.nextWordIndex);
 
-	// Match spoken words against global word list.
-	// On final results, advance the anchor so the next utterance starts from here.
+	// Process FINAL transcript: advance the stable anchor
 	$effect(() => {
-		const transcript = speechStore.transcript;
+		const transcript = speechStore.finalTranscript;
 		if (!transcript || transcript.trim().length === 0) return;
 
-		const newIndex = matchWords(transcript, data.allWords, sessionAnchor);
+		const newIndex = matchWords(transcript, data.allWords, finalCursor);
+		finalCursor = newIndex;
 		appState.nextWordIndex = newIndex;
+	});
 
-		if (speechStore.lastResult?.isFinal) {
-			sessionAnchor = newIndex;
-		}
+	// Process INTERIM transcript: advance display cursor only (not the anchor).
+	// Always searches from the final cursor, so each interim independently finds
+	// the best match from the last known-good position.
+	$effect(() => {
+		const transcript = speechStore.interimTranscript;
+		if (!transcript || transcript.trim().length === 0) return;
+
+		const newIndex = matchWords(transcript, data.allWords, finalCursor);
+		appState.nextWordIndex = newIndex;
 	});
 
 	// Auto-scroll when current verse changes
@@ -86,8 +91,9 @@
 
 	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
-		appState.nextWordIndex = targetVerse?.words[0]?.globalIndex ?? 0;
-		sessionAnchor = appState.nextWordIndex;
+		const idx = targetVerse?.words[0]?.globalIndex ?? 0;
+		appState.nextWordIndex = idx;
+		finalCursor = idx;
 	}
 
 	function navigateToVerse(surahNum: number, verseNum: number): void {
