@@ -1,6 +1,12 @@
 import { distance } from "fastest-levenshtein";
 import type { Word } from "$lib/types";
-import { WINDOW_MULTIPLIER, LOOKAHEAD_PADDING, MAX_DISTANCE_RATIO, MIN_SUFFIX_RATIO, MIN_SUFFIX_TOKENS } from "./constants";
+import {
+  WINDOW_MULTIPLIER,
+  LOOKAHEAD_PADDING,
+  MAX_DISTANCE_RATIO,
+  MIN_SUFFIX_RATIO,
+  MIN_SUFFIX_TOKENS,
+} from "./constants";
 
 /**
  * Match a spoken phrase against the global word list using expanding-prefix
@@ -76,10 +82,12 @@ export function matchWords(
   const minSuffixLength = fixedRef.length * MIN_SUFFIX_RATIO;
 
   for (let skip = 1; skip < normalizedTokens.length; skip++) {
-    const remainingTokens = normalizedTokens.length - skip;
-    if (remainingTokens < MIN_SUFFIX_TOKENS) break;
     const suffix = normalizedTokens.slice(skip).join(" ");
-    if (suffix.length < minSuffixLength) break;
+    if (
+      normalizedTokens.length - skip < MIN_SUFFIX_TOKENS ||
+      suffix.length < minSuffixLength
+    )
+      break;
 
     const d = distance(suffix, fixedRef);
     if (d <= suffix.length * MAX_DISTANCE_RATIO) {
