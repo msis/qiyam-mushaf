@@ -125,8 +125,8 @@ export const STORE_NAME = "cache";
 export const CACHE_KEY = "quran-data";
 
 // Word matching configuration
-export const WINDOW_MULTIPLIER = 2; // Scale spoken word count to account for speech API under-delivering
-export const LOOKAHEAD_PADDING = 10; // Extra words beyond scaled count in search window
+export const WINDOW_MULTIPLIER = 1; // Scale spoken word count to account for speech API under-delivering
+export const LOOKAHEAD_PADDING = 8; // Extra words beyond scaled count in search window
 export const MAX_DISTANCE_RATIO = 0.6; // Reject match if edit distance > perc% of spoken phrase length
 export const MIN_SUFFIX_RATIO = 0.8; // Trimmed suffix must retain at least this fraction of fixedRef length
 export const MIN_SUFFIX_TOKENS = 3; // Stop trimming if suffix has fewer than this many tokens
