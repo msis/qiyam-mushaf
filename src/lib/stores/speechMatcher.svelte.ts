@@ -16,6 +16,12 @@ interface SpeechTranscripts {
  * Must be called from a component context so $effect binds to the component lifecycle.
  */
 export function createSpeechMatcher(allWords: Word[], speech: SpeechTranscripts) {
+	// Debug - auto stripped out in prod
+	$inspect('final', speech.finalTranscript);
+	$inspect('interim', speech.interimTranscript);
+	$inspect('finalCursor', appState.finalCursor);
+	$inspect('nextWordIndex', appState.nextWordIndex);
+
 	// Process FINAL transcript: advance the stable anchor
 	$effect(() => {
 		const transcript = speech.finalTranscript;
