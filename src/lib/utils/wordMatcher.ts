@@ -1,37 +1,101 @@
 import { distance } from "fastest-levenshtein";
 import type { Word } from "$lib/types";
-import { SIMILARITY_THRESHOLD } from "./constants";
+import {
+  WINDOW_MULTIPLIER,
+  LOOKAHEAD_PADDING,
+  MAX_DISTANCE_RATIO,
+  MIN_SUFFIX_RATIO,
+  MIN_SUFFIX_TOKENS,
+} from "./constants";
 
 /**
- * Match spoken words sequentially against the global word list starting from `anchor`.
- * Returns the new cursor position (first unmatched global index).
+ * Match a spoken phrase against the global word list using expanding-prefix
+ * Levenshtein matching. Returns the new cursor position (first unmatched index).
  *
- * The transcript is re-matched from the anchor on every call, so interim speech
- * revisions are handled correctly — the cursor can advance or regress within a session.
+ * The speech API can return transcripts that include already-matched text
+ * (stale prefix) before the anchor — e.g. after an auto-restart or when Chrome
+ * bundles a long utterance. To handle this:
+ *
+ * 1. Run expanding-prefix once on the full transcript → find bestCount
+ *    (the stale prefix adds roughly uniform edit cost to all reference prefixes,
+ *    so the optimal bestCount is stable regardless of stale tokens).
+ * 2. If the quality gate rejects, trim spoken tokens from the front one at a
+ *    time, re-checking only the quality gate against the fixed reference prefix.
+ *    This is O(W + N) Levenshtein calls instead of O(N × W).
  */
 export function matchWords(
   transcript: string,
   words: Word[],
   anchor: number,
 ): number {
-  const spokenWords = transcript
+  const spokenTokens = transcript
     .trim()
     .split(/\s+/)
     .filter((w) => w.length > 0);
+  if (spokenTokens.length === 0) return anchor;
 
-  let cursor = Math.max(0, Math.min(anchor, words.length));
+  const clampedAnchor = Math.max(0, Math.min(anchor, words.length));
 
-  for (const spoken of spokenWords) {
-    if (cursor >= words.length) break;
-    const normalized = normalizeArabicWord(spoken);
-    if (wordsMatch(normalized, words[cursor].normalizedSimple)) {
-      cursor++;
-    } else {
-      break;
+  const normalizedTokens = spokenTokens.map(normalizeArabicWord);
+  const fullPhrase = normalizedTokens.join(" ");
+  if (fullPhrase.length === 0) return clampedAnchor;
+
+  // --- Step 1: Expanding-prefix search on the full transcript ---
+  const windowSize = Math.min(
+    normalizedTokens.length * WINDOW_MULTIPLIER + LOOKAHEAD_PADDING,
+    words.length - clampedAnchor,
+  );
+  if (windowSize <= 0) return clampedAnchor;
+
+  let minDistance = Infinity;
+  let bestCount = 0;
+  let referencePhrase = "";
+
+  for (let i = 0; i < windowSize; i++) {
+    if (i > 0) referencePhrase += " ";
+    referencePhrase += words[clampedAnchor + i].normalizedSimple;
+
+    const d = distance(fullPhrase, referencePhrase);
+    if (d < minDistance) {
+      minDistance = d;
+      bestCount = i + 1;
     }
   }
 
-  return cursor;
+  // Fast path: full transcript passes quality gate.
+  if (minDistance <= fullPhrase.length * MAX_DISTANCE_RATIO) {
+    return clampedAnchor + bestCount;
+  }
+
+  if (bestCount === 0) return clampedAnchor;
+
+  // --- Step 2: Trim stale prefix, re-check quality gate against fixed ref ---
+  // Build the fixed reference phrase (bestCount words from anchor).
+  let fixedRef = "";
+  for (let i = 0; i < bestCount; i++) {
+    if (i > 0) fixedRef += " ";
+    fixedRef += words[clampedAnchor + i].normalizedSimple;
+  }
+
+  // Only trust a trimmed suffix if it retains enough length relative to the
+  // fixedRef. Prevents a single coincidental token (e.g. "من") from matching.
+  const minSuffixLength = fixedRef.length * MIN_SUFFIX_RATIO;
+
+  for (let skip = 1; skip < normalizedTokens.length; skip++) {
+    const suffix = normalizedTokens.slice(skip).join(" ");
+    if (
+      normalizedTokens.length - skip < MIN_SUFFIX_TOKENS ||
+      suffix.length < minSuffixLength
+    )
+      break;
+
+    const d = distance(suffix, fixedRef);
+    if (d <= suffix.length * MAX_DISTANCE_RATIO) {
+      return clampedAnchor + bestCount;
+    }
+  }
+
+  return clampedAnchor;
 }
 
 export function normalizeArabicWord(word: string): string {
@@ -43,21 +107,4 @@ export function normalizeArabicWord(word: string): string {
     .replace(/[\u064B-\u065F]/g, "")
     .toLowerCase()
     .trim();
-}
-
-function wordsMatch(spoken: string, quran: string): boolean {
-  if (spoken === quran) {
-    return true;
-  }
-
-  if (quran.includes(spoken) || spoken.includes(quran)) {
-    return true;
-  }
-
-  return calculateSimilarity(spoken, quran) > SIMILARITY_THRESHOLD;
-}
-
-function calculateSimilarity(word1: string, word2: string): number {
-  if (word1.length === 0 || word2.length === 0) return 0;
-  return 1 - distance(word1, word2) / Math.max(word1.length, word2.length);
 }

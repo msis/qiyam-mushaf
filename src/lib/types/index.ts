@@ -30,12 +30,6 @@ export interface QuranRawData {
 	simple: string[][];
 }
 
-export interface SpeechRecognitionResult {
-	transcript: string;
-	confidence: number;
-	isFinal: boolean;
-}
-
 export interface SpeechRecognitionConfig {
 	language: string;
 	continuous: boolean;
@@ -45,7 +39,7 @@ export interface SpeechRecognitionConfig {
 export type RecognitionStatus = 'idle' | 'listening' | 'stopped' | 'error';
 
 export interface SpeechRecognitionCallbacks {
-	onResult?: (result: SpeechRecognitionResult) => void;
+	onResult?: (finalTranscript: string, interimTranscript: string) => void;
 	onError?: (error: Error) => void;
 	onEnd?: () => void;
 	onStart?: () => void;

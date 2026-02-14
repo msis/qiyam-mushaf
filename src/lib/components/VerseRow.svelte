@@ -1,7 +1,5 @@
 <script lang="ts">
 	import type { Verse, GlobalVerseKey } from '$lib/types';
-	import { SvelteSet } from 'svelte/reactivity';
-
 	interface Props {
 		verse: Verse;
 		verseKey: GlobalVerseKey;
@@ -18,7 +16,7 @@
 	// Convert contiguous simple-word count → uthmani index set for highlighting
 	const highlightedUthmaniSet = $derived.by(() => {
 		if (highlightedCount <= 0) return undefined;
-		const set = new SvelteSet<number>();
+		const set = new Set<number>();
 		for (let i = 0; i < highlightedCount; i++) {
 			const word = verse.words[i];
 			if (word) set.add(word.uthmaniIndex);
@@ -63,12 +61,11 @@
 			{@const isFrontier = uIdx === frontierUthmaniIdx}
 			{@const isRead = !isFrontier && (highlightedUthmaniSet?.has(uIdx) ?? false)}
 			<span
-				class="inline-block px-1 mx-0.5 rounded transition-all duration-200"
-				style={isFrontier
-					? 'text-shadow: 0 0 10px rgba(251,191,36,0.9), 0 0 25px rgba(251,191,36,0.5), 0 0 45px rgba(251,191,36,0.2); background: linear-gradient(180deg, transparent 10%, rgba(251,191,36,0.15) 45%, rgba(251,191,36,0.15) 55%, transparent 90%);'
+				class="inline-block px-1 mx-0.5 rounded transition-all duration-200 {isFrontier
+					? 'word-frontier'
 					: isRead
-						? 'opacity: 0.3;'
-						: ''}
+						? 'word-read'
+						: ''}"
 			>
 				{uthmaniWord}
 			</span>
