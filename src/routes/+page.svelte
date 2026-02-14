@@ -94,11 +94,15 @@
 		</button>
 	</div>
 
-	<div class="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg">
+	<button
+		onclick={() => (appState.isModalOpen = true)}
+		class="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
+		title="Navigate to verse"
+	>
 		<span class="text-amber-100 text-sm font-medium">
 			{currentSurah?.name} ({currentPosition.surah}:{currentPosition.verse})
 		</span>
-	</div>
+	</button>
 
 	{#if speechStore.errorMessage}
 		<div
