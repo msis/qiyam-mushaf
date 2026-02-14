@@ -29,8 +29,6 @@ class SpeechStore {
 			},
 			onStart: () => {
 				this.status = 'listening';
-				this.finalTranscript = '';
-				this.interimTranscript = '';
 				this.errorMessage = null;
 			},
 			onEnd: () => {
@@ -44,6 +42,8 @@ class SpeechStore {
 	}
 
 	start(): void {
+		this.finalTranscript = '';
+		this.interimTranscript = '';
 		this.service.start();
 	}
 
