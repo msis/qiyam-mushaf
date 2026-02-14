@@ -96,7 +96,7 @@
 
 	<button
 		onclick={() => (appState.isModalOpen = true)}
-		class="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
+		class="fixed top-4 left-4 z-40 bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-lg shadow-lg transition-colors cursor-pointer"
 		title="Navigate to verse"
 	>
 		<span class="text-amber-100 text-sm font-medium">
