@@ -1,7 +1,5 @@
 <script lang="ts">
 	import type { Verse, GlobalVerseKey } from '$lib/types';
-	import { SvelteSet } from 'svelte/reactivity';
-
 	interface Props {
 		verse: Verse;
 		verseKey: GlobalVerseKey;
@@ -18,7 +16,7 @@
 	// Convert contiguous simple-word count → uthmani index set for highlighting
 	const highlightedUthmaniSet = $derived.by(() => {
 		if (highlightedCount <= 0) return undefined;
-		const set = new SvelteSet<number>();
+		const set = new Set<number>();
 		for (let i = 0; i < highlightedCount; i++) {
 			const word = verse.words[i];
 			if (word) set.add(word.uthmaniIndex);
