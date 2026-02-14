@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { appState } from '$lib/stores/app.svelte';
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
+	import { createSpeechMatcher } from '$lib/stores/speechMatcher.svelte';
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
-	import { matchWords } from '$lib/utils/wordMatcher';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
 	import { fade } from 'svelte/transition';
@@ -12,6 +12,7 @@
 	let { data } = $props();
 
 	const speechStore = getSpeechStore();
+	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
 	// --- Derived position from nextWordIndex (O(1) field read) ---
@@ -38,37 +39,6 @@
 
 	// --- Reactive effects ---
 
-	// The final cursor is the stable anchor. It only advances on committed
-	// (final) speech results, preventing volatile interim results from
-	// corrupting the search window.
-	let finalCursor = $state(appState.nextWordIndex);
-
-	$inspect('final', speechStore.finalTranscript);
-	$inspect('interim', speechStore.interimTranscript);
-	$inspect('finalCursor', finalCursor);
-	$inspect('nextWordIndex', appState.nextWordIndex);
-
-	// Process FINAL transcript: advance the stable anchor
-	$effect(() => {
-		const transcript = speechStore.finalTranscript;
-		if (!transcript || transcript.trim().length === 0) return;
-
-		const newIndex = matchWords(transcript, data.allWords, finalCursor);
-		finalCursor = newIndex;
-		appState.nextWordIndex = newIndex;
-	});
-
-	// Process INTERIM transcript: advance display cursor only (not the anchor).
-	// Always searches from the final cursor, so each interim independently finds
-	// the best match from the last known-good position.
-	$effect(() => {
-		const transcript = speechStore.interimTranscript;
-		if (!transcript || transcript.trim().length === 0) return;
-
-		const newIndex = matchWords(transcript, data.allWords, finalCursor);
-		appState.nextWordIndex = newIndex;
-	});
-
 	// Auto-scroll when current verse changes
 	let lastScrolledKey: GlobalVerseKey | null = null;
 
@@ -92,8 +62,8 @@
 	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
 		const idx = targetVerse?.words[0]?.globalIndex ?? 0;
+		appState.finalCursor = idx;
 		appState.nextWordIndex = idx;
-		finalCursor = idx;
 	}
 
 	function navigateToVerse(surahNum: number, verseNum: number): void {
