@@ -6,8 +6,7 @@ const preview: Preview = {
     backgrounds: {
       default: 'dark',
       value: [
-        { name: 'dark', value: '#0f172a' },
-        { name: 'light', value: '#f8fafc' },
+        { name: 'dark', value: '#111827' },
       ],
     },
     controls: {
