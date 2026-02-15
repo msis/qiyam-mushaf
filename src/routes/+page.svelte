@@ -39,15 +39,21 @@
 
 	// --- Reactive effects ---
 
-	// Auto-scroll when current verse changes
+	// Forward-only auto-scroll: prevents jitter from interim speech oscillation.
+	// User navigation resets both variables, allowing any direction.
+	let scrollFloor = 0;
 	let lastScrolledKey: GlobalVerseKey | null = null;
 
 	$effect(() => {
 		const key = currentVerseKey;
-		if (key !== lastScrolledKey) {
-			lastScrolledKey = key;
-			scrollToVerse(key);
-		}
+		const idx = appState.nextWordIndex;
+
+		if (key === lastScrolledKey) return;
+		if (idx < scrollFloor) return;
+
+		scrollFloor = idx;
+		lastScrolledKey = key;
+		scrollToVerse(key);
 	});
 
 	// Auto-dismiss speech error after 3 seconds
@@ -62,6 +68,8 @@
 	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
 		const idx = targetVerse?.words[0]?.globalIndex ?? 0;
+		scrollFloor = idx;
+		lastScrolledKey = null;
 		appState.finalCursor = idx;
 		appState.nextWordIndex = idx;
 	}
