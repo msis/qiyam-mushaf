@@ -5,7 +5,10 @@
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
-	import { fade } from 'svelte/transition';
+	import NavigationButton from '$lib/components/NavigationButton.svelte';
+	import PositionBadge from '$lib/components/PositionBadge.svelte';
+	import ErrorToast from '$lib/components/ErrorToast.svelte';
+	import RecordButton from '$lib/components/RecordButton.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
 
@@ -86,65 +89,24 @@
 
 <div class="h-screen bg-gray-900 flex flex-col">
 	<div class="fixed top-4 right-4 z-40">
-		<button
-			onclick={() => (appState.isModalOpen = true)}
-			class="bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full shadow-lg transition-colors"
-			title="Open navigation"
-		>
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M4 6h16M4 12h16M4 18h16"
-				/>
-			</svg>
-		</button>
+		<NavigationButton onclick={() => (appState.isModalOpen = true)} />
 	</div>
 
-	<button
-		onclick={() => (appState.isModalOpen = true)}
-		class="fixed top-4 left-4 z-40 bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-lg shadow-lg transition-colors cursor-pointer"
-		title="Navigate to verse"
-	>
-		<span class="text-amber-100 text-sm font-medium">
-			{currentSurah?.name} ({currentPosition.surah}:{currentPosition.verse})
-		</span>
-	</button>
+	<div class="fixed top-4 left-4 z-40">
+		<PositionBadge
+			surahName={currentSurah?.name ?? ''}
+			surahNumber={currentPosition.surah}
+			verseNumber={currentPosition.verse}
+			onclick={() => (appState.isModalOpen = true)}
+		/>
+	</div>
 
 	{#if speechStore.errorMessage}
-		<div
-			transition:fade={{ duration: 200 }}
-			role="alert"
-			class="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 bg-red-900/90 text-red-100 text-sm px-4 py-2 rounded-lg shadow-lg"
-		>
-			{speechStore.errorMessage}
-		</div>
+		<ErrorToast message={speechStore.errorMessage} />
 	{/if}
 
 	<div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-		<button
-			onclick={toggleRecognition}
-			class="p-4 rounded-full shadow-lg transition-all {speechStore.isListening
-				? 'bg-red-600 hover:bg-red-700 animate-pulse'
-				: 'bg-green-600 hover:bg-green-700'} text-white"
-			title={speechStore.isListening ? 'Stop recording' : 'Start recording'}
-		>
-			{#if speechStore.isListening}
-				<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<rect x="6" y="6" width="12" height="12" stroke-width="2" />
-				</svg>
-			{:else}
-				<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-					/>
-				</svg>
-			{/if}
-		</button>
+		<RecordButton isListening={speechStore.isListening} onclick={toggleRecognition} />
 	</div>
 
 	<div class="flex-1 min-h-0 h-full">
