@@ -1,7 +1,7 @@
 <script module>
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import SurahHeader from '$lib/components/SurahHeader.svelte';
-  import { mockAlFatihah, createMockSurah } from '$lib/stories/mocks';
+  import { mockAlFatihah, mockAlBaqara, mockYaSin } from '$lib/stories/mocks';
 
   const { Story } = defineMeta({
     title: 'Components/SurahHeader',
@@ -16,10 +16,10 @@
 
 <Story
   name="Al-Baqara"
-  args={{ surah: createMockSurah(2, 'البقرة', 'Al-Baqara', 286) }}
+  args={{ surah: mockAlBaqara }}
 />
 
 <Story
   name="Ya-Sin"
-  args={{ surah: createMockSurah(36, 'يس', 'Ya-Sin', 83) }}
+  args={{ surah: mockYaSin }}
 />

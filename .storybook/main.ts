@@ -14,6 +14,9 @@ const config: StorybookConfig = {
     '@storybook/addon-docs'
   ],
   framework: '@storybook/sveltekit',
+  staticDirs: [
+    { from: '../static/data', to: '/data' }
+  ],
   async viteFinal(config) {
     config.plugins = config.plugins || [];
     config.plugins.push(tailwindcss());

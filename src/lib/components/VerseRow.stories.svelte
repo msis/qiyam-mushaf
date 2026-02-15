@@ -1,7 +1,7 @@
 <script module>
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import VerseRow from '$lib/components/VerseRow.svelte';
-  import { mockVerseAlFatihah1, mockVerseAlKahf17, createMockSurah } from '$lib/stories/mocks';
+  import { mockVerseAlFatihah1, mockVerseAlKahf17 } from '$lib/stories/mocks';
 
   const { Story } = defineMeta({
     title: 'Components/VerseRow',

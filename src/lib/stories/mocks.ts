@@ -1,70 +1,33 @@
-import type { Surah, Verse, Word, RenderableItem } from '$lib/types';
+import type { Surah, Verse, RenderableItem, QuranRawData } from '$lib/types';
 import { SURAH_NAMES } from '$lib/utils/constants';
+import { processQuranData } from '$lib/utils/dataProcessor';
+import uthmaniData from '$lib/../data/quran-uthmani-list.json?raw';
+import simpleData from '$lib/../data/quran-simple-clean-list.json?raw';
 
-export const mockSurahs: Surah[] = SURAH_NAMES.slice(0, 3).map((s) => ({
-  ...s,
-  verses: [],
-}));
-
-export const mockAlFatihah: Surah = {
-  number: 1,
-  name: 'الفاتحة',
-  nameEn: 'Al-Fatiha',
-  verseCount: 7,
-  verses: [],
+// Process real Quran data once
+const rawData: QuranRawData = {
+  uthmani: JSON.parse(uthmaniData) as string[][],
+  simple: JSON.parse(simpleData) as string[][],
 };
 
-export const mockVerseAlFatihah1: Verse = {
-  number: 1,
-  uthmani: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-  words: [
-    { simple: 'بسم', normalizedSimple: 'بسم', uthmaniIndex: 0, globalIndex: 0, verseKey: '1:1' },
-    { simple: 'الله', normalizedSimple: 'الله', uthmaniIndex: 1, globalIndex: 1, verseKey: '1:1' },
-    { simple: 'الرحمن', normalizedSimple: 'الرحمن', uthmaniIndex: 2, globalIndex: 2, verseKey: '1:1' },
-    { simple: 'الرحيم', normalizedSimple: 'الرحيم', uthmaniIndex: 3, globalIndex: 3, verseKey: '1:1' },
-  ],
-};
+const quranData = processQuranData(rawData);
 
-export const mockVerseAlFatihah2: Verse = {
-  number: 2,
-  uthmani: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
-  words: [
-    { simple: 'الحمد', normalizedSimple: 'الحمد', uthmaniIndex: 0, globalIndex: 4, verseKey: '1:2' },
-    { simple: 'لله', normalizedSimple: 'لله', uthmaniIndex: 1, globalIndex: 5, verseKey: '1:2' },
-    { simple: 'رب', normalizedSimple: 'رب', uthmaniIndex: 2, globalIndex: 6, verseKey: '1:2' },
-    { simple: 'العالمين', normalizedSimple: 'العالمين', uthmaniIndex: 3, globalIndex: 7, verseKey: '1:2' },
-  ],
-};
+// Export surahs array
+export const mockSurahs: Surah[] = quranData.surahs.slice(0, 3);
 
-export const mockVerseAlKahf17: Verse = {
-  number: 17,
-  uthmani: 'وَتَرَى الشَّمْسَ إِذَا طَلَعَت تَّزَاوَرُ عَن كَهْفِهِمْ ذَاتَ الْيَمِينِ وَإِذَا غَرَبَت تَّقْرِضُهُمْ ذَاتَ الشِّمَالِ وَهُمْ فِي فَجْوَةٍ مِّنْهُ ۚ ذَٰلِكَ مِنْ آيَاتِ اللَّهِ ۗ مَن يَهْدِ اللَّهَ فَهُوَ الْمُهْتَدِ ۖ وَمَن يُضْلِلْ فَلَن تَجِدَ لَهُ وَلِيًّا مُّرْشِدًا',
-  words: Array.from({ length: 30 }, (_, i) => ({
-    simple: `word${i}`,
-    normalizedSimple: `word${i}`,
-    uthmaniIndex: i,
-    globalIndex: 1000 + i,
-    verseKey: '18:17',
-  })),
-};
+// Export specific surahs
+export const mockAlFatihah: Surah = quranData.surahs[0];
+export const mockAlBaqara: Surah = quranData.surahs[1];
+export const mockYaSin: Surah = quranData.surahs[35];
 
-export function createMockSurah(num: number, name: string, nameEn: string, verseCount: number): Surah {
-  return {
-    number: num,
-    name,
-    nameEn,
-    verseCount,
-    verses: Array.from({ length: verseCount }, (_, i) => ({
-      number: i + 1,
-      uthmani: `بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ${nameEn} verse ${i + 1}`,
-      words: [
-        { simple: 'بسم', normalizedSimple: 'بسم', uthmaniIndex: 0, globalIndex: i * 10, verseKey: `${num}:${i + 1}` },
-        { simple: 'الله', normalizedSimple: 'الله', uthmaniIndex: 1, globalIndex: i * 10 + 1, verseKey: `${num}:${i + 1}` },
-      ],
-    })),
-  };
-}
+// Export specific verses from Al-Fatiha
+export const mockVerseAlFatihah1: Verse = quranData.surahs[0].verses[0];
+export const mockVerseAlFatihah2: Verse = quranData.surahs[0].verses[1];
 
+// Export a longer verse (Al-Kahf 18:17 - verse index 16 in surah 17)
+export const mockVerseAlKahf17: Verse = quranData.surahs[17].verses[16];
+
+// Export renderable items for virtual list stories
 export const mockRenderableItems: RenderableItem[] = [
   { index: 0, surahNumber: 1, type: 'surah-header', surahData: mockAlFatihah },
   { index: 1, surahNumber: 1, type: 'bismillah' },
