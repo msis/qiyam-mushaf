@@ -48,7 +48,6 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
-	onkeydown={handleKeydown}
 	role="dialog"
 	aria-modal="true"
 	aria-labelledby="modal-title"

@@ -1,17 +1,19 @@
 import { SpeechRecognitionService } from '$lib/services/SpeechRecognitionService';
-import type { RecognitionStatus, SpeechRecognitionResult } from '$lib/types';
+import type { RecognitionStatus } from '$lib/types';
 
 /**
  * Reactive wrapper around SpeechRecognitionService.
- * Exposes speech recognition state as reactive properties for UI binding.
+ * Exposes separate final/interim transcript state for UI binding.
+ *
+ * Final transcripts are committed by the speech engine (won't change).
+ * Interim transcripts are the engine's current best guess (replaced each event).
  */
 class SpeechStore {
 	private service: SpeechRecognitionService;
 
-	// Reactive state for UI
 	status = $state<RecognitionStatus>('idle');
-	transcript = $state('');
-	lastResult = $state<SpeechRecognitionResult | null>(null);
+	finalTranscript = $state('');
+	interimTranscript = $state('');
 	errorMessage = $state<string | null>(null);
 
 	constructor(service?: SpeechRecognitionService) {
@@ -21,13 +23,12 @@ class SpeechStore {
 
 	private setupCallbacks(): void {
 		this.service.on({
-			onResult: (result) => {
-				this.transcript = result.transcript;
-				this.lastResult = result;
+			onResult: (finalTranscript, interimTranscript) => {
+				if (finalTranscript) this.finalTranscript = finalTranscript;
+				this.interimTranscript = interimTranscript;
 			},
 			onStart: () => {
 				this.status = 'listening';
-				this.transcript = '';
 				this.errorMessage = null;
 			},
 			onEnd: () => {
@@ -41,6 +42,8 @@ class SpeechStore {
 	}
 
 	start(): void {
+		this.finalTranscript = '';
+		this.interimTranscript = '';
 		this.service.start();
 	}
 
@@ -58,8 +61,8 @@ class SpeechStore {
 	}
 
 	reset(): void {
-		this.transcript = '';
-		this.lastResult = null;
+		this.finalTranscript = '';
+		this.interimTranscript = '';
 		this.errorMessage = null;
 	}
 

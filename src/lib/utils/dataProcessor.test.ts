@@ -1,14 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'fs';
 import { processQuranData } from './dataProcessor';
 import type { QuranRawData } from '$lib/types';
+import uthmani from '../../../static/data/quran-uthmani-list.json';
+import simple from '../../../static/data/quran-simple-clean-list.json';
 
-const uthmani: string[][] = JSON.parse(
-	readFileSync('static/data/quran-uthmani-list.json', 'utf-8')
-);
-const simple: string[][] = JSON.parse(
-	readFileSync('static/data/quran-simple-clean-list.json', 'utf-8')
-);
 const rawData: QuranRawData = { uthmani, simple };
 const data = processQuranData(rawData);
 

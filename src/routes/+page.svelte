@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { appState } from '$lib/stores/app.svelte';
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
+	import { createSpeechMatcher } from '$lib/stores/speechMatcher.svelte';
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
-	import { matchWords } from '$lib/utils/wordMatcher';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
-	import { untrack } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
@@ -13,6 +12,7 @@
 	let { data } = $props();
 
 	const speechStore = getSpeechStore();
+	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
 	// --- Derived position from nextWordIndex (O(1) field read) ---
@@ -39,40 +39,21 @@
 
 	// --- Reactive effects ---
 
-	// Session anchor: where matching starts for the current recognition session.
-	// Re-matching the full transcript from the anchor on every interim result
-	// handles speech API revisions correctly.
-	let sessionAnchor = 0;
-
-	$effect(() => {
-		if (speechStore.status === 'listening') {
-			sessionAnchor = untrack(() => appState.nextWordIndex);
-		}
-	});
-
-	// Match spoken words against global word list.
-	// On final results, advance the anchor so the next utterance starts from here.
-	$effect(() => {
-		const transcript = speechStore.transcript;
-		if (!transcript || transcript.trim().length === 0) return;
-
-		const newIndex = matchWords(transcript, data.allWords, sessionAnchor);
-		appState.nextWordIndex = newIndex;
-
-		if (speechStore.lastResult?.isFinal) {
-			sessionAnchor = newIndex;
-		}
-	});
-
-	// Auto-scroll when current verse changes
+	// Forward-only auto-scroll: prevents jitter from interim speech oscillation.
+	// User navigation resets both variables, allowing any direction.
+	let scrollFloor = 0;
 	let lastScrolledKey: GlobalVerseKey | null = null;
 
 	$effect(() => {
 		const key = currentVerseKey;
-		if (key !== lastScrolledKey) {
-			lastScrolledKey = key;
-			scrollToVerse(key);
-		}
+		const idx = appState.nextWordIndex;
+
+		if (key === lastScrolledKey) return;
+		if (idx < scrollFloor) return;
+
+		scrollFloor = idx;
+		lastScrolledKey = key;
+		scrollToVerse(key);
 	});
 
 	// Auto-dismiss speech error after 3 seconds
@@ -86,8 +67,11 @@
 
 	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
-		appState.nextWordIndex = targetVerse?.words[0]?.globalIndex ?? 0;
-		sessionAnchor = appState.nextWordIndex;
+		const idx = targetVerse?.words[0]?.globalIndex ?? 0;
+		scrollFloor = idx;
+		lastScrolledKey = null;
+		appState.finalCursor = idx;
+		appState.nextWordIndex = idx;
 	}
 
 	function navigateToVerse(surahNum: number, verseNum: number): void {
@@ -118,11 +102,15 @@
 		</button>
 	</div>
 
-	<div class="fixed top-4 left-4 z-40 bg-gray-800 bg-opacity-90 px-3 py-2 rounded-lg">
+	<button
+		onclick={() => (appState.isModalOpen = true)}
+		class="fixed top-4 left-4 z-40 bg-amber-600 hover:bg-amber-700 px-3 py-2 rounded-lg shadow-lg transition-colors cursor-pointer"
+		title="Navigate to verse"
+	>
 		<span class="text-amber-100 text-sm font-medium">
 			{currentSurah?.name} ({currentPosition.surah}:{currentPosition.verse})
 		</span>
-	</div>
+	</button>
 
 	{#if speechStore.errorMessage}
 		<div
