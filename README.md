@@ -272,6 +272,20 @@ bun test
 bun run check
 ```
 
+## Storybook
+
+Component-driven development with Storybook.
+
+```bash
+# Start Storybook
+bun storybook
+
+# Build static Storybook
+bun run build-storybook
+```
+
+Stories are located in each component file (`*.stories.svelte`) with mock data in `src/lib/stories/mocks.ts`.
+
 ## Contributing
 
 This is a personal project, but contributions are welcome:
