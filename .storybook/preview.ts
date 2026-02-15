@@ -2,12 +2,14 @@ import type { Preview } from '@storybook/sveltekit';
 import '../src/app.css';
 
 const preview: Preview = {
+  initialGlobals: {
+    backgrounds: { value: 'dark' }
+  },
   parameters: {
     backgrounds: {
-      default: 'dark',
-      value: [
-        { name: 'dark', value: '#111827' },
-      ],
+      options: {
+        dark: { name: 'Dark', value: '#111827' }
+      },
     },
     controls: {
       matchers: {
