@@ -2,6 +2,7 @@
 	import { appState } from '$lib/stores/app.svelte';
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
 	import { createSpeechMatcher } from '$lib/stores/speechMatcher.svelte';
+	import { getBookmarkStore } from '$lib/stores/bookmarks.svelte';
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
@@ -11,14 +12,20 @@
 	import PositionBadge from '$lib/components/PositionBadge.svelte';
 	import ErrorToast from '$lib/components/ErrorToast.svelte';
 	import RecordButton from '$lib/components/RecordButton.svelte';
+	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
+	import BookmarkList from '$lib/components/BookmarkList.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
 	const speechStore = getSpeechStore();
+	const bookmarkStore = getBookmarkStore();
 	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
+
+	let isBookmarkModalOpen = $state(false);
 
 	// --- Derived position from nextWordIndex (O(1) field read) ---
 
@@ -87,6 +94,23 @@
 	function toggleRecognition(): void {
 		speechStore.toggle();
 	}
+
+	function handleToggleBookmark(): void {
+		bookmarkStore.toggleBookmark(currentVerseKey);
+	}
+
+	function openBookmarkList(): void {
+		appState.isSettingsModalOpen = false;
+		isBookmarkModalOpen = true;
+	}
+
+	function handleRemoveBookmark(verseKey: GlobalVerseKey): void {
+		bookmarkStore.toggleBookmark(verseKey);
+	}
+
+	onMount(() => {
+		bookmarkStore.init();
+	});
 </script>
 
 <div class="h-screen bg-gray-900 flex flex-col">
@@ -94,12 +118,17 @@
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
 	</div>
 
-	<div class="fixed top-4 left-4 z-40">
+	<div class="fixed top-4 left-4 z-40 flex items-center gap-2">
 		<PositionBadge
 			surahName={currentSurah?.name ?? ''}
 			surahNumber={currentPosition.surah}
 			verseNumber={currentPosition.verse}
 			onclick={() => (appState.isNavigationModalOpen = true)}
+		/>
+		<BookmarkButton
+			verseKey={currentVerseKey}
+			isBookmarked={bookmarkStore.isBookmarked(currentVerseKey)}
+			onToggle={handleToggleBookmark}
 		/>
 	</div>
 
@@ -117,6 +146,7 @@
 			items={data.renderableItems}
 			{currentVerseKey}
 			nextWordIndex={appState.nextWordIndex}
+			bookmarkedKeys={bookmarkStore.bookmarkedKeys}
 			onVerseClick={setCursorToVerse}
 		/>
 	</div>
@@ -135,10 +165,22 @@
 		<SettingsModal
 			onClose={() => (appState.isSettingsModalOpen = false)}
 			onOpenAcknowledgments={() => (appState.isAcknowledgmentsOpen = true)}
+			onOpenBookmarks={openBookmarkList}
+			bookmarkCount={bookmarkStore.bookmarks.length}
 		/>
 	{/if}
 
 	{#if appState.isAcknowledgmentsOpen}
 		<AcknowledgmentsModal onClose={() => (appState.isAcknowledgmentsOpen = false)} />
+	{/if}
+
+	{#if isBookmarkModalOpen}
+		<BookmarkList
+			bookmarks={bookmarkStore.bookmarks}
+			surahs={data.surahs}
+			onClose={() => (isBookmarkModalOpen = false)}
+			onNavigate={navigateToVerse}
+			onRemove={handleRemoveBookmark}
+		/>
 	{/if}
 </div>
