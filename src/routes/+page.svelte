@@ -173,7 +173,6 @@
 			onclick={() => (appState.isNavigationModalOpen = true)}
 		/>
 		<BookmarkButton
-			verseKey={currentVerseKey}
 			isBookmarked={bookmarkStore.isBookmarked(currentVerseKey)}
 			onToggle={handleToggleBookmark}
 		/>

@@ -1,13 +1,11 @@
 <script lang="ts">
-	import type { GlobalVerseKey } from '$lib/types';
 
 	interface Props {
-		verseKey: GlobalVerseKey;
 		isBookmarked: boolean;
 		onToggle: () => void;
 	}
 
-	let { verseKey, isBookmarked, onToggle }: Props = $props();
+	let { isBookmarked, onToggle }: Props = $props();
 </script>
 
 <button
