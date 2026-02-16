@@ -117,12 +117,12 @@
 	}
 
 	// Flag to prevent saving position during restore
-	let isRestoring = false;
+	// Initialize as true to prevent saves before restore completes
+	let isRestoring = $state(true);
 	let isSavingPosition = false;
 	let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	async function restorePosition(): Promise<void> {
-		isRestoring = true;
 		await bookmarkStore.init();
 		
 		// Only restore if continue is enabled
