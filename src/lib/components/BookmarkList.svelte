@@ -14,16 +14,51 @@
 	let { bookmarks, surahs, onClose, onNavigate, onRemove }: Props = $props();
 
 	const SWIPE_THRESHOLD = 100;
+	const MAX_OFFSET = 120;
 
-	let touchStates = $state<Record<string, { startX: number; currentX: number; isSwiping: boolean }>>({});
+	let focusedIndex = $state<number | null>(null);
+	
+	let touchStates = $state<Record<string, { startX: number; currentX: number }>>({});
 
-	function getSurahName(verseKey: GlobalVerseKey): string {
-		const pos = fromGlobalKey(verseKey);
-		const surah = surahs.find((s) => s.number === pos.surah);
-		return surah ? `${surah.name} (${surah.nameEn})` : '';
+	function getOffset(verseKey: GlobalVerseKey): number {
+		const state = touchStates[verseKey];
+		if (!state) return 0;
+		const delta = state.startX - state.currentX;
+		return Math.max(0, Math.min(delta, MAX_OFFSET));
 	}
 
-	function handleBookmarkClick(verseKey: GlobalVerseKey): void {
+	function handlePointerDown(e: PointerEvent, verseKey: GlobalVerseKey) {
+		touchStates[verseKey] = {
+			startX: e.clientX,
+			currentX: e.clientX
+		};
+		(e.target as HTMLElement).setPointerCapture(e.pointerId);
+	}
+
+	function handlePointerMove(e: PointerEvent, verseKey: GlobalVerseKey) {
+		if (!touchStates[verseKey]) return;
+		touchStates[verseKey] = {
+			...touchStates[verseKey],
+			currentX: e.clientX
+		};
+	}
+
+	function handlePointerUp(e: PointerEvent, verseKey: GlobalVerseKey) {
+		const state = touchStates[verseKey];
+		if (!state) return;
+
+		(e.target as HTMLElement).releasePointerCapture(e.pointerId);
+
+		const delta = state.startX - state.currentX;
+		if (delta > SWIPE_THRESHOLD) {
+			onRemove(verseKey);
+		}
+
+		delete touchStates[verseKey];
+		touchStates = { ...touchStates };
+	}
+
+	function handleNavigate(verseKey: GlobalVerseKey): void {
 		const pos = fromGlobalKey(verseKey);
 		onNavigate(pos.surah, pos.verse);
 		onClose();
@@ -39,59 +74,27 @@
 		if (e.key === 'Escape') {
 			onClose();
 		}
-	}
-
-	function handleTouchStart(e: TouchEvent, verseKey: GlobalVerseKey) {
-		const touch = e.touches[0];
-		touchStates[verseKey] = {
-			startX: touch.clientX,
-			currentX: touch.clientX,
-			isSwiping: true
-		};
-	}
-
-	function handleTouchMove(e: TouchEvent, verseKey: GlobalVerseKey) {
-		if (!touchStates[verseKey]?.isSwiping) return;
-		const touch = e.touches[0];
-		const deltaX = touch.clientX - touchStates[verseKey].startX;
-		if (deltaX < 0) {
-			touchStates[verseKey] = {
-				...touchStates[verseKey],
-				currentX: touch.clientX
-			};
-		}
-	}
-
-	function handleTouchEnd(e: TouchEvent, verseKey: GlobalVerseKey) {
-		if (!touchStates[verseKey]) return;
-		const deltaX = touchStates[verseKey].startX - touchStates[verseKey].currentX;
-		if (deltaX > SWIPE_THRESHOLD) {
-			onRemove(verseKey);
-		}
-		touchStates[verseKey] = {
-			startX: 0,
-			currentX: 0,
-			isSwiping: false
-		};
-	}
-
-	function handleKeyDownSwipe(e: KeyboardEvent, verseKey: GlobalVerseKey) {
-		if (e.key === 'Enter' || e.key === ' ') {
+		if ((e.key === 'Delete' || e.key === 'Backspace') && focusedIndex !== null) {
 			e.preventDefault();
-			onRemove(verseKey);
+			const bookmark = bookmarks[focusedIndex];
+			if (bookmark) {
+				onRemove(bookmark.verseKey);
+			}
 		}
 	}
 
-	function getTranslateX(verseKey: GlobalVerseKey): number {
-		const state = touchStates[verseKey];
-		if (!state) return 0;
-		const delta = state.startX - state.currentX;
-		return delta > 0 ? Math.min(delta, 120) : 0;
+	function handleFocus(index: number) {
+		focusedIndex = index;
+	}
+
+	function handleBlur() {
+		focusedIndex = null;
 	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
@@ -100,7 +103,6 @@
 	aria-modal="true"
 	aria-labelledby="modal-title"
 	tabindex="-1"
-	dir="ltr"
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700 max-h-[80vh] flex flex-col">
 		<div class="flex justify-between items-center mb-4">
@@ -108,6 +110,7 @@
 			<button
 				onclick={onClose}
 				class="text-gray-400 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700"
+				aria-label="Close bookmarks"
 			>
 				&times;
 			</button>
@@ -122,30 +125,37 @@
 				<p class="text-sm mt-1">Tap the bookmark icon to save a verse</p>
 			</div>
 		{:else}
-			<div class="flex-1 overflow-y-auto space-y-2">
-				{#each bookmarks as bookmark (bookmark.verseKey)}
+			<div class="flex-1 overflow-y-auto space-y-2" role="list" aria-label="Bookmarked verses">
+				{#each bookmarks as bookmark, index (bookmark.verseKey)}
 					{@const pos = fromGlobalKey(bookmark.verseKey)}
-					{@const translateX = getTranslateX(bookmark.verseKey)}
+					{@const offset = getOffset(bookmark.verseKey)}
 					<div class="relative overflow-hidden rounded-lg">
-						<div class="absolute inset-y-0 right-0 flex items-center justify-center w-20 bg-red-600 text-white transition-opacity" class:opacity-100={translateX > 10} class:opacity-0={translateX <= 10}>
-							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div 
+							class="absolute inset-y-0 right-0 w-20 flex items-center justify-center transition-opacity duration-200"
+							class:bg-red-600={offset > 10}
+							class:opacity-100={offset > 10}
+							class:opacity-0={offset <= 10}
+							aria-hidden="true"
+						>
+							<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
 							</svg>
 						</div>
 						<div
-							class="flex items-center justify-between bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors"
-							ontouchstart={(e) => handleTouchStart(e, bookmark.verseKey)}
-							ontouchmove={(e) => handleTouchMove(e, bookmark.verseKey)}
-							ontouchend={(e) => handleTouchEnd(e, bookmark.verseKey)}
-							onkeydown={(e) => handleKeyDownSwipe(e, bookmark.verseKey)}
-							role="button"
+							class="flex items-center justify-between rounded-lg p-3 bg-gray-700 hover:bg-gray-600 transition-colors"
+							style="transform: translateX(-{offset}px); touch-action: none;"
+							role="listitem"
 							tabindex="0"
-							aria-label="Swipe or press to delete bookmark"
-							style="transform: translateX(-{translateX}px); touch-action: pan-y;"
+							onpointerdown={(e) => handlePointerDown(e, bookmark.verseKey)}
+							onpointermove={(e) => handlePointerMove(e, bookmark.verseKey)}
+							onpointerup={(e) => handlePointerUp(e, bookmark.verseKey)}
+							onfocus={() => handleFocus(index)}
+							onblur={handleBlur}
+							aria-label="{surahs[pos.surah - 1]?.name ?? ''} verse {pos.verse}, press Delete to remove"
 						>
 							<button
-							onclick={() => handleBookmarkClick(bookmark.verseKey)}
-							class="flex-1"
+								onclick={() => handleNavigate(bookmark.verseKey)}
+								class="flex-1 text-start"
 							>
 								<div class="text-amber-100 font-medium">
 									{surahs[pos.surah - 1]?.name ?? ''}
@@ -157,7 +167,7 @@
 							<button
 								onclick={() => onRemove(bookmark.verseKey)}
 								class="text-gray-400 hover:text-red-400 p-2 rounded-full hover:bg-gray-500 transition-colors"
-								title="Remove bookmark"
+								aria-label="Remove bookmark"
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
