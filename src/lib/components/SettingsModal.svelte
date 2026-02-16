@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getSettingsStore } from '$lib/stores/settings.svelte';
+	import FontSizeControl from '$lib/components/FontSizeControl.svelte';
 	interface Props {
 		onClose: () => void;
 		onOpenAcknowledgments: () => void;
@@ -57,17 +58,8 @@
 		}
 	}
 
-	function updateFontSize(nextSize: number): void {
-		const clamped = Math.max(18, Math.min(48, Math.round(nextSize)));
-		settingsStore.setVerseFontSize(clamped);
-	}
-
-	function decrementFontSize(): void {
-		updateFontSize(settingsStore.verseFontSize - 2);
-	}
-
-	function incrementFontSize(): void {
-		updateFontSize(settingsStore.verseFontSize + 2);
+	function handleFontSizeChange(nextSize: number): void {
+		settingsStore.setVerseFontSize(nextSize);
 	}
 </script>
 
@@ -94,43 +86,10 @@
 		</div>
 
 		<div class="space-y-3">
-			<div class="w-full bg-gray-700/40 border border-gray-700 text-amber-100 font-medium py-3 px-4 rounded-lg">
-				<div class="flex items-center justify-between mb-3">
-					<span class="text-sm text-amber-200">Verse font size</span>
-					<span class="text-xs text-amber-100">{settingsStore.verseFontSize}px</span>
-				</div>
-				<div class="flex items-center gap-3">
-					<button
-						type="button"
-						class="w-9 h-9 rounded-md bg-gray-700 hover:bg-gray-600 text-amber-100"
-						onclick={decrementFontSize}
-						aria-label="Decrease font size"
-					>
-						-
-					</button>
-					<input
-						type="range"
-						min="18"
-						max="48"
-						step="1"
-						value={settingsStore.verseFontSize}
-						class="flex-1 accent-amber-500"
-						oninput={(event: Event) =>
-							updateFontSize(
-								Number((event.currentTarget as HTMLInputElement).value)
-							)}
-						aria-label="Verse font size"
-					/>
-					<button
-						type="button"
-						class="w-9 h-9 rounded-md bg-gray-700 hover:bg-gray-600 text-amber-100"
-						onclick={incrementFontSize}
-						aria-label="Increase font size"
-					>
-						+
-					</button>
-				</div>
-			</div>
+			<FontSizeControl
+				value={settingsStore.verseFontSize}
+				onChange={handleFontSizeChange}
+			/>
 			<div
 				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center cursor-pointer"
 				onclick={handleToggle}
