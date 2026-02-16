@@ -94,4 +94,4 @@ All types in `src/lib/types/index.ts`:
 - `SURAH_NAMES` - Array of all 114 surahs with Arabic/English names and verse counts
 - `LANGUAGE_CODE` - Arabic locale for speech recognition (`ar-SA`)
 - `SIMILARITY_THRESHOLD` - Levenshtein match threshold (0.7)
-- `DB_NAME`, `DB_VERSION`, `STORE_NAME`, `CACHE_KEY` - IndexedDB configuration
+- `DB_NAME`, `DB_VERSION`, `CACHE_KEY` - IndexedDB configuration

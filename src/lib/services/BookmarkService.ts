@@ -1,21 +1,8 @@
 import type { GlobalVerseKey } from '$lib/types';
-import { openDatabase, BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE } from '$lib/services/db';
+import { BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE } from '$lib/utils/constants';
+import { getDB, type Bookmark, type ContinuePosition, type AppSettings } from '$lib/services/db';
 
-export interface Bookmark {
-	verseKey: GlobalVerseKey;
-	createdAt: number;
-}
-
-export interface ContinuePosition {
-	id: 'continue';
-	verseKey: GlobalVerseKey;
-	updatedAt: number;
-}
-
-export interface AppSettings {
-	id: 'settings';
-	continueEnabled: boolean;
-}
+export type { Bookmark, ContinuePosition, AppSettings };
 
 export class BookmarkService {
 	private static instance: BookmarkService | undefined;
@@ -39,54 +26,19 @@ export class BookmarkService {
 		}
 
 		try {
-			const db = await openDatabase();
+			const db = await getDB();
+			const tx = db.transaction([BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE], 'readonly');
 
-			const result = await new Promise<{
-				bookmarks: Bookmark[];
-				continuePos: ContinuePosition | null;
-				settings: AppSettings | null;
-			}>((resolve, reject) => {
-				const tx = db.transaction([BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE], 'readonly');
-				const bookmarkStore = tx.objectStore(BOOKMARKS_STORE);
-				const continueStore = tx.objectStore(CONTINUE_STORE);
-				const settingsStore = tx.objectStore(SETTINGS_STORE);
+			const [bookmarks, continuePos, settings] = await Promise.all([
+				tx.objectStore(BOOKMARKS_STORE).getAll(),
+				tx.objectStore(CONTINUE_STORE).get('continue'),
+				tx.objectStore(SETTINGS_STORE).get('settings'),
+				tx.done,
+			]);
 
-				let bookmarks: Bookmark[] = [];
-				let continuePos: ContinuePosition | null = null;
-				let settings: AppSettings | null = null;
-				let completed = 0;
-
-				const checkDone = () => {
-					completed++;
-					if (completed === 3) {
-						resolve({ bookmarks, continuePos, settings });
-					}
-				};
-
-				bookmarkStore.getAll().onsuccess = (event) => {
-					bookmarks = (event.target as IDBRequest).result || [];
-					checkDone();
-				};
-				bookmarkStore.getAll().onerror = () => reject(bookmarkStore.getAll().error);
-
-				continueStore.get('continue').onsuccess = (event) => {
-					continuePos = (event.target as IDBRequest).result || null;
-					checkDone();
-				};
-				continueStore.get('continue').onerror = () => reject(continueStore.get('continue').error);
-
-				settingsStore.get('settings').onsuccess = (event) => {
-					settings = (event.target as IDBRequest).result || null;
-					checkDone();
-				};
-				settingsStore.get('settings').onerror = () => reject(settingsStore.get('settings').error);
-
-				tx.onerror = () => reject(tx.error);
-			});
-
-			this.bookmarks = result.bookmarks.sort((a, b) => b.createdAt - a.createdAt);
-			this.continuePosition = result.continuePos;
-			this.continueEnabled = result.settings?.continueEnabled ?? true;
+			this.bookmarks = bookmarks.sort((a, b) => b.createdAt - a.createdAt);
+			this.continuePosition = continuePos ?? null;
+			this.continueEnabled = settings?.continueEnabled ?? true;
 
 			this.initialized = true;
 			return this.bookmarks;
@@ -104,22 +56,16 @@ export class BookmarkService {
 
 		const bookmark: Bookmark = {
 			verseKey,
-			createdAt: Date.now()
+			createdAt: Date.now(),
 		};
 
 		try {
-			const db = await openDatabase();
-			
-			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(BOOKMARKS_STORE, 'readwrite');
-				const store = tx.objectStore(BOOKMARKS_STORE);
-				const request = store.put(bookmark);
+			const db = await getDB();
+			await db.put(BOOKMARKS_STORE, bookmark);
 
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve();
-			});
-
-			this.bookmarks = [bookmark, ...this.bookmarks].sort((a, b) => b.createdAt - a.createdAt);
+			this.bookmarks = [bookmark, ...this.bookmarks].sort(
+				(a, b) => b.createdAt - a.createdAt,
+			);
 			return true;
 		} catch (error) {
 			console.error('Error adding bookmark:', error);
@@ -129,18 +75,10 @@ export class BookmarkService {
 
 	async removeBookmark(verseKey: GlobalVerseKey): Promise<boolean> {
 		try {
-			const db = await openDatabase();
-			
-			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(BOOKMARKS_STORE, 'readwrite');
-				const store = tx.objectStore(BOOKMARKS_STORE);
-				const request = store.delete(verseKey);
+			const db = await getDB();
+			await db.delete(BOOKMARKS_STORE, verseKey);
 
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve();
-			});
-
-			this.bookmarks = this.bookmarks.filter(b => b.verseKey !== verseKey);
+			this.bookmarks = this.bookmarks.filter((b) => b.verseKey !== verseKey);
 			return true;
 		} catch (error) {
 			console.error('Error removing bookmark:', error);
@@ -149,7 +87,7 @@ export class BookmarkService {
 	}
 
 	isBookmarked(verseKey: GlobalVerseKey): boolean {
-		return this.bookmarks.some(b => b.verseKey === verseKey);
+		return this.bookmarks.some((b) => b.verseKey === verseKey);
 	}
 
 	getBookmarks(): Bookmark[] {
@@ -160,20 +98,12 @@ export class BookmarkService {
 		const position: ContinuePosition = {
 			id: 'continue',
 			verseKey,
-			updatedAt: Date.now()
+			updatedAt: Date.now(),
 		};
 
 		try {
-			const db = await openDatabase();
-			
-			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(CONTINUE_STORE, 'readwrite');
-				const store = tx.objectStore(CONTINUE_STORE);
-				const request = store.put(position);
-
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve();
-			});
+			const db = await getDB();
+			await db.put(CONTINUE_STORE, position);
 
 			this.continuePosition = position;
 		} catch (error) {
@@ -187,21 +117,8 @@ export class BookmarkService {
 
 	async setContinueEnabled(enabled: boolean): Promise<void> {
 		try {
-			const db = await openDatabase();
-			
-			const settings: AppSettings = {
-				id: 'settings',
-				continueEnabled: enabled
-			};
-			
-			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(SETTINGS_STORE, 'readwrite');
-				const store = tx.objectStore(SETTINGS_STORE);
-				const request = store.put(settings);
-
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve();
-			});
+			const db = await getDB();
+			await db.put(SETTINGS_STORE, { id: 'settings', continueEnabled: enabled });
 
 			this.continueEnabled = enabled;
 		} catch (error) {
