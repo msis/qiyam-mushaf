@@ -9,7 +9,9 @@
 class AppState {
 	finalCursor = $state(0);
 	nextWordIndex = $state(0);
-	isModalOpen = $state(false);
+	isNavigationModalOpen = $state(false);
+	isSettingsModalOpen = $state(false);
+	isAcknowledgmentsOpen = $state(false);
 }
 
 export const appState = new AppState();

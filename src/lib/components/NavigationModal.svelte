@@ -52,6 +52,7 @@
 	aria-modal="true"
 	aria-labelledby="modal-title"
 	tabindex="-1"
+	dir="ltr"
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
 		<div class="flex justify-between items-center mb-6">

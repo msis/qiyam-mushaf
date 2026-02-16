@@ -5,7 +5,9 @@
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
-	import NavigationButton from '$lib/components/NavigationButton.svelte';
+	import SettingsButton from '$lib/components/SettingsButton.svelte';
+	import SettingsModal from '$lib/components/SettingsModal.svelte';
+	import AcknowledgmentsModal from '$lib/components/AcknowledgmentsModal.svelte';
 	import PositionBadge from '$lib/components/PositionBadge.svelte';
 	import ErrorToast from '$lib/components/ErrorToast.svelte';
 	import RecordButton from '$lib/components/RecordButton.svelte';
@@ -89,7 +91,7 @@
 
 <div class="h-screen bg-gray-900 flex flex-col">
 	<div class="fixed top-4 right-4 z-40">
-		<NavigationButton onclick={() => (appState.isModalOpen = true)} />
+		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
 	</div>
 
 	<div class="fixed top-4 left-4 z-40">
@@ -97,7 +99,7 @@
 			surahName={currentSurah?.name ?? ''}
 			surahNumber={currentPosition.surah}
 			verseNumber={currentPosition.verse}
-			onclick={() => (appState.isModalOpen = true)}
+			onclick={() => (appState.isNavigationModalOpen = true)}
 		/>
 	</div>
 
@@ -119,13 +121,24 @@
 		/>
 	</div>
 
-	{#if appState.isModalOpen}
+	{#if appState.isNavigationModalOpen}
 		<NavigationModal
-			onClose={() => (appState.isModalOpen = false)}
+			onClose={() => (appState.isNavigationModalOpen = false)}
 			surahs={data.surahs}
 			selectedSurah={currentPosition.surah}
 			selectedVerse={currentPosition.verse}
 			onNavigate={navigateToVerse}
 		/>
+	{/if}
+
+	{#if appState.isSettingsModalOpen}
+		<SettingsModal
+			onClose={() => (appState.isSettingsModalOpen = false)}
+			onOpenAcknowledgments={() => (appState.isAcknowledgmentsOpen = true)}
+		/>
+	{/if}
+
+	{#if appState.isAcknowledgmentsOpen}
+		<AcknowledgmentsModal onClose={() => (appState.isAcknowledgmentsOpen = false)} />
 	{/if}
 </div>
