@@ -16,12 +16,14 @@
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
+	import { getSettingsStore } from '$lib/stores/settings.svelte';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
 	const speechStore = getSpeechStore();
 	const bookmarkStore = getBookmarkStore();
+	const settingsStore = getSettingsStore();
 	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
@@ -172,7 +174,10 @@
 	});
 </script>
 
-<div class="h-screen bg-gray-900 flex flex-col">
+<div
+	class="h-screen bg-gray-900 flex flex-col"
+	style="--verse-font-size: {settingsStore.verseFontSize}px"
+>
 	<div class="fixed top-4 right-4 z-40">
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
 	</div>
