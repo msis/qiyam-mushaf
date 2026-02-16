@@ -14,7 +14,6 @@
 	const SWIPE_THRESHOLD = 100;
 	const MAX_OFFSET = 120;
 
-	let isFocused = $state(false);
 	let touchState = $state<{ startX: number; currentX: number } | null>(null);
 
 	function getOffset(): number {
@@ -74,8 +73,6 @@
 		onpointerdown={handlePointerDown}
 		onpointermove={handlePointerMove}
 		onpointerup={handlePointerUp}
-		onfocus={() => isFocused = true}
-		onblur={() => isFocused = false}
 		aria-label="{surah?.name ?? ''} verse {verseNumber}, press Delete to remove"
 	>
 		<button
