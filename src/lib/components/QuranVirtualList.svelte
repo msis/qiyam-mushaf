@@ -9,10 +9,12 @@
 		items: RenderableItem[];
 		currentVerseKey: GlobalVerseKey | null;
 		nextWordIndex: number;
+		bookmarkedKeys?: Set<string>;
 		onVerseClick?: (surahNumber: number, verseNumber: number) => void;
+		onToggleVerseBookmark?: (verseKey: GlobalVerseKey) => void;
 	}
 
-	let { items, currentVerseKey, nextWordIndex, onVerseClick }: Props = $props();
+	let { items, currentVerseKey, nextWordIndex, bookmarkedKeys = new Set(), onVerseClick, onToggleVerseBookmark }: Props = $props();
 
 	const ITEM_GAP = 8;
 	const TOP_PADDING = 70; // clears fixed position badge
@@ -96,13 +98,16 @@
 			{:else if item.type === 'verse'}
 				{@const isActive = currentVerseKey === item.verseKey}
 				{@const offset = item.verse.words[0]?.globalIndex ?? 0}
+				{@const isBookmarked = bookmarkedKeys.has(item.verseKey)}
 				<VerseRow
 					verse={item.verse}
 					verseKey={item.verseKey}
 					surahNumber={item.surahNumber}
 					isCurrentVerse={isActive}
 					highlightedCount={isActive ? Math.max(0, Math.min(item.verse.words.length, nextWordIndex - offset)) : 0}
+					isBookmarked={isBookmarked}
 					onclick={onVerseClick}
+					onToggleVerseBookmark={onToggleVerseBookmark}
 				/>
 			{/if}
 		</div>

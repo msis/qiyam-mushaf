@@ -119,10 +119,13 @@ export const SURAH_COUNT = 114;
 export const LANGUAGE_CODE = "ar-SA";
 
 // IndexedDB configuration
-export const DB_NAME = "quran-teleprompter";
-export const DB_VERSION = 4;
+export const DB_NAME = "qiyam-mushaf";
+export const DB_VERSION = 5;
 export const STORE_NAME = "cache";
 export const CACHE_KEY = "quran-data";
+export const BOOKMARKS_STORE = "bookmarks";
+export const CONTINUE_STORE = "continue";
+export const SETTINGS_STORE = "settings";
 
 // Word matching configuration
 export const WINDOW_MULTIPLIER = 1.1; // Scale spoken word count to account for speech API under-delivering
