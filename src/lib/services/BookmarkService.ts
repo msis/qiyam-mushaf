@@ -74,43 +74,58 @@ export class BookmarkService {
 		try {
 			const db = await this.openDB();
 
-			const bookmarks = await new Promise<Bookmark[]>((resolve, reject) => {
-				const tx = db.transaction(BOOKMARKS_STORE, 'readonly');
-				const store = tx.objectStore(BOOKMARKS_STORE);
-				const request = store.getAll();
+			const result = await new Promise<{
+				bookmarks: Bookmark[];
+				continuePos: ContinuePosition | null;
+				settings: AppSettings | null;
+			}>((resolve, reject) => {
+				const tx = db.transaction([BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE], 'readonly');
+				const bookmarkStore = tx.objectStore(BOOKMARKS_STORE);
+				const continueStore = tx.objectStore(CONTINUE_STORE);
+				const settingsStore = tx.objectStore(SETTINGS_STORE);
 
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve(request.result || []);
+				let bookmarks: Bookmark[] = [];
+				let continuePos: ContinuePosition | null = null;
+				let settings: AppSettings | null = null;
+				let completed = 0;
+
+				const checkDone = () => {
+					completed++;
+					if (completed === 3) {
+						resolve({ bookmarks, continuePos, settings });
+					}
+				};
+
+				bookmarkStore.getAll().onsuccess = (event) => {
+					bookmarks = (event.target as IDBRequest).result || [];
+					checkDone();
+				};
+				bookmarkStore.getAll().onerror = () => reject(bookmarkStore.getAll().error);
+
+				continueStore.get('continue').onsuccess = (event) => {
+					continuePos = (event.target as IDBRequest).result || null;
+					checkDone();
+				};
+				continueStore.get('continue').onerror = () => reject(continueStore.get('continue').error);
+
+				settingsStore.get('settings').onsuccess = (event) => {
+					settings = (event.target as IDBRequest).result || null;
+					checkDone();
+				};
+				settingsStore.get('settings').onerror = () => reject(settingsStore.get('settings').error);
+
+				tx.onerror = () => reject(tx.error);
 			});
 
-			this.bookmarks = bookmarks.sort((a, b) => b.createdAt - a.createdAt);
-
-			const continuePos = await new Promise<ContinuePosition | null>((resolve, reject) => {
-				const tx = db.transaction(CONTINUE_STORE, 'readonly');
-				const store = tx.objectStore(CONTINUE_STORE);
-				const request = store.get('continue');
-
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve(request.result || null);
-			});
-
-			this.continuePosition = continuePos;
-
-			const settings = await new Promise<AppSettings | null>((resolve, reject) => {
-				const tx = db.transaction(SETTINGS_STORE, 'readonly');
-				const store = tx.objectStore(SETTINGS_STORE);
-				const request = store.get('settings');
-
-				request.onerror = () => reject(request.error);
-				request.onsuccess = () => resolve(request.result || null);
-			});
-
-			this.continueEnabled = settings?.continueEnabled ?? true;
+			this.bookmarks = result.bookmarks.sort((a, b) => b.createdAt - a.createdAt);
+			this.continuePosition = result.continuePos;
+			this.continueEnabled = result.settings?.continueEnabled ?? true;
 
 			this.initialized = true;
 			return this.bookmarks;
 		} catch (error) {
 			console.error('Error loading bookmarks:', error);
+			this.initialized = false;
 			return [];
 		}
 	}
