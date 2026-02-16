@@ -21,8 +21,6 @@ export interface AppSettings {
 const BOOKMARK_DB_NAME = `${DB_NAME}-bookmarks`;
 const BOOKMARK_DB_VERSION = 3;
 
-const BOOKMARKS_STORE_NAME = BOOKMARKS_STORE;
-const CONTINUE_STORE_NAME = CONTINUE_STORE;
 const SETTINGS_STORE = 'settings';
 
 export class BookmarkService {
@@ -56,11 +54,11 @@ export class BookmarkService {
 
 			request.onupgradeneeded = (event) => {
 				const db = (event.target as IDBOpenDBRequest).result;
-				if (!db.objectStoreNames.contains(BOOKMARKS_STORE_NAME)) {
-					db.createObjectStore(BOOKMARKS_STORE_NAME, { keyPath: 'verseKey' });
+				if (!db.objectStoreNames.contains(BOOKMARKS_STORE)) {
+					db.createObjectStore(BOOKMARKS_STORE, { keyPath: 'verseKey' });
 				}
-				if (!db.objectStoreNames.contains(CONTINUE_STORE_NAME)) {
-					db.createObjectStore(CONTINUE_STORE_NAME, { keyPath: 'id' });
+				if (!db.objectStoreNames.contains(CONTINUE_STORE)) {
+					db.createObjectStore(CONTINUE_STORE, { keyPath: 'id' });
 				}
 				if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
 					db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' });
@@ -78,8 +76,8 @@ export class BookmarkService {
 			const db = await this.openDB();
 
 			const bookmarks = await new Promise<Bookmark[]>((resolve, reject) => {
-				const tx = db.transaction(BOOKMARKS_STORE_NAME, 'readonly');
-				const store = tx.objectStore(BOOKMARKS_STORE_NAME);
+				const tx = db.transaction(BOOKMARKS_STORE, 'readonly');
+				const store = tx.objectStore(BOOKMARKS_STORE);
 				const request = store.getAll();
 
 				request.onerror = () => reject(request.error);
@@ -89,8 +87,8 @@ export class BookmarkService {
 			this.bookmarks = bookmarks.sort((a, b) => b.createdAt - a.createdAt);
 
 			const continuePos = await new Promise<ContinuePosition | null>((resolve, reject) => {
-				const tx = db.transaction(CONTINUE_STORE_NAME, 'readonly');
-				const store = tx.objectStore(CONTINUE_STORE_NAME);
+				const tx = db.transaction(CONTINUE_STORE, 'readonly');
+				const store = tx.objectStore(CONTINUE_STORE);
 				const request = store.get('continue');
 
 				request.onerror = () => reject(request.error);
@@ -132,8 +130,8 @@ export class BookmarkService {
 			const db = await this.openDB();
 			
 			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(BOOKMARKS_STORE_NAME, 'readwrite');
-				const store = tx.objectStore(BOOKMARKS_STORE_NAME);
+				const tx = db.transaction(BOOKMARKS_STORE, 'readwrite');
+				const store = tx.objectStore(BOOKMARKS_STORE);
 				const request = store.put(bookmark);
 
 				request.onerror = () => reject(request.error);
@@ -153,8 +151,8 @@ export class BookmarkService {
 			const db = await this.openDB();
 			
 			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(BOOKMARKS_STORE_NAME, 'readwrite');
-				const store = tx.objectStore(BOOKMARKS_STORE_NAME);
+				const tx = db.transaction(BOOKMARKS_STORE, 'readwrite');
+				const store = tx.objectStore(BOOKMARKS_STORE);
 				const request = store.delete(verseKey);
 
 				request.onerror = () => reject(request.error);
@@ -189,8 +187,8 @@ export class BookmarkService {
 			const db = await this.openDB();
 			
 			await new Promise<void>((resolve, reject) => {
-				const tx = db.transaction(CONTINUE_STORE_NAME, 'readwrite');
-				const store = tx.objectStore(CONTINUE_STORE_NAME);
+				const tx = db.transaction(CONTINUE_STORE, 'readwrite');
+				const store = tx.objectStore(CONTINUE_STORE);
 				const request = store.put(position);
 
 				request.onerror = () => reject(request.error);
