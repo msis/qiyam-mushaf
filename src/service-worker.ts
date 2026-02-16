@@ -16,7 +16,6 @@ const ASSETS = [
 	...files // everything in static/
 ];
 
-// Install: cache all static assets
 self.addEventListener('install', (event) => {
 	event.waitUntil(
 		(async () => {
