@@ -1,5 +1,5 @@
 import type { GlobalVerseKey } from '$lib/types';
-import { BOOKMARK_DB_NAME, BOOKMARK_DB_VERSION, BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE } from '$lib/utils/constants';
+import { openDatabase, BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE } from '$lib/services/db';
 
 export interface Bookmark {
 	verseKey: GlobalVerseKey;
@@ -22,7 +22,6 @@ export class BookmarkService {
 	private bookmarks: Bookmark[] = [];
 	private continuePosition: ContinuePosition | null = null;
 	private continueEnabled = true;
-	private db: IDBDatabase | null = null;
 	private initialized = false;
 
 	private constructor() {}
@@ -34,40 +33,13 @@ export class BookmarkService {
 		return BookmarkService.instance;
 	}
 
-	private async openDB(): Promise<IDBDatabase> {
-		if (this.db) return this.db;
-
-		return new Promise((resolve, reject) => {
-			const request = indexedDB.open(BOOKMARK_DB_NAME, BOOKMARK_DB_VERSION);
-
-			request.onerror = () => reject(request.error);
-			request.onsuccess = () => {
-				this.db = request.result;
-				resolve(this.db);
-			};
-
-			request.onupgradeneeded = (event) => {
-				const db = (event.target as IDBOpenDBRequest).result;
-				if (!db.objectStoreNames.contains(BOOKMARKS_STORE)) {
-					db.createObjectStore(BOOKMARKS_STORE, { keyPath: 'verseKey' });
-				}
-				if (!db.objectStoreNames.contains(CONTINUE_STORE)) {
-					db.createObjectStore(CONTINUE_STORE, { keyPath: 'id' });
-				}
-				if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
-					db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' });
-				}
-			};
-		});
-	}
-
 	async loadBookmarks(): Promise<Bookmark[]> {
 		if (this.initialized) {
 			return this.bookmarks;
 		}
 
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 
 			const result = await new Promise<{
 				bookmarks: Bookmark[];
@@ -136,7 +108,7 @@ export class BookmarkService {
 		};
 
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 			
 			await new Promise<void>((resolve, reject) => {
 				const tx = db.transaction(BOOKMARKS_STORE, 'readwrite');
@@ -157,7 +129,7 @@ export class BookmarkService {
 
 	async removeBookmark(verseKey: GlobalVerseKey): Promise<boolean> {
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 			
 			await new Promise<void>((resolve, reject) => {
 				const tx = db.transaction(BOOKMARKS_STORE, 'readwrite');
@@ -192,7 +164,7 @@ export class BookmarkService {
 		};
 
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 			
 			await new Promise<void>((resolve, reject) => {
 				const tx = db.transaction(CONTINUE_STORE, 'readwrite');
@@ -215,7 +187,7 @@ export class BookmarkService {
 
 	async setContinueEnabled(enabled: boolean): Promise<void> {
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 			
 			const settings: AppSettings = {
 				id: 'settings',

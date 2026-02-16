@@ -39,8 +39,12 @@
 		onOpenBookmarks();
 	}
 
-	function handleToggle() {
-		onToggleContinue(!continueEnabled);
+	function handleToggle(e?: MouseEvent) {
+		if (e && e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+			onToggleContinue(e.target.checked);
+		} else {
+			onToggleContinue(!continueEnabled);
+		}
 	}
 
 	function handleToggleKeydown(e: KeyboardEvent) {
@@ -97,7 +101,6 @@
 							type="checkbox" 
 							id="continue-toggle"
 							checked={continueEnabled}
-							onclick={(e) => e.stopPropagation()}
 							class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"
 						/>
 						<label for="continue-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-500 cursor-pointer">

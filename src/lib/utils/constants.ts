@@ -120,11 +120,9 @@ export const LANGUAGE_CODE = "ar-SA";
 
 // IndexedDB configuration
 export const DB_NAME = "qiyam-mushaf";
-export const DB_VERSION = 4;
+export const DB_VERSION = 5;
 export const STORE_NAME = "cache";
 export const CACHE_KEY = "quran-data";
-export const BOOKMARK_DB_NAME = `${DB_NAME}-bookmarks`;
-export const BOOKMARK_DB_VERSION = 3;
 export const BOOKMARKS_STORE = "bookmarks";
 export const CONTINUE_STORE = "continue";
 export const SETTINGS_STORE = "settings";

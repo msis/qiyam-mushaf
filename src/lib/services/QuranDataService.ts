@@ -1,12 +1,12 @@
 import type { QuranData, QuranRawData } from '$lib/types';
 import { processQuranData } from '$lib/utils/dataProcessor';
-import { DB_NAME, DB_VERSION, STORE_NAME, CACHE_KEY } from '$lib/utils/constants';
+import { CACHE_KEY } from '$lib/utils/constants';
+import { openDatabase, STORE_NAME } from '$lib/services/db';
 
 export class QuranDataService {
 	private static instance: QuranDataService | undefined;
 	private data: QuranData | null = null;
 	private loadingPromise: Promise<QuranData> | null = null;
-	private dbPromise: Promise<IDBDatabase> | null = null;
 
 	private constructor() {}
 
@@ -19,27 +19,6 @@ export class QuranDataService {
 
 	static resetInstance(): void {
 		QuranDataService.instance = undefined;
-	}
-
-	private openDB(): Promise<IDBDatabase> {
-		if (this.dbPromise) return this.dbPromise;
-
-		this.dbPromise = new Promise((resolve, reject) => {
-			const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-			request.onerror = () => reject(request.error);
-			request.onsuccess = () => resolve(request.result);
-
-			request.onupgradeneeded = () => {
-				const db = request.result;
-				if (db.objectStoreNames.contains(STORE_NAME)) {
-					db.deleteObjectStore(STORE_NAME);
-				}
-				db.createObjectStore(STORE_NAME);
-			};
-		});
-
-		return this.dbPromise;
 	}
 
 	async loadData(): Promise<QuranData> {
@@ -95,7 +74,7 @@ export class QuranDataService {
 	}
 
 	private async loadFromCache(): Promise<QuranData | null> {
-		const db = await this.openDB();
+		const db = await openDatabase();
 		return new Promise((resolve, reject) => {
 			const tx = db.transaction(STORE_NAME, 'readonly');
 			const store = tx.objectStore(STORE_NAME);
@@ -108,7 +87,7 @@ export class QuranDataService {
 
 	private async saveToCache(data: QuranData): Promise<void> {
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 			return new Promise((resolve, reject) => {
 				const tx = db.transaction(STORE_NAME, 'readwrite');
 				const store = tx.objectStore(STORE_NAME);
@@ -124,7 +103,7 @@ export class QuranDataService {
 
 	async clearCache(): Promise<void> {
 		try {
-			const db = await this.openDB();
+			const db = await openDatabase();
 			return new Promise((resolve, reject) => {
 				const tx = db.transaction(STORE_NAME, 'readwrite');
 				const store = tx.objectStore(STORE_NAME);
