@@ -14,14 +14,11 @@
 
 	// Local state for selection (doesn't navigate until "Go" is clicked)
 	// Initialized from props — component mounts fresh each time via parent {#if}
-	let localSurah = $state(0);
-	let localVerse = $state(0);
-
-	// Initialize local state from props on mount only
-	onMount(() => {
-		localSurah = selectedSurah;
-		localVerse = selectedVerse;
-	});
+	// We intentionally capture initial values, not track ongoing changes
+	// svelte-ignore state_referenced_locally
+	let localSurah = $state(selectedSurah);
+	// svelte-ignore state_referenced_locally
+	let localVerse = $state(selectedVerse);
 
 	let selectedSurahData = $derived(surahs.find((s) => s.number === localSurah));
 
