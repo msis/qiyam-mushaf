@@ -1,5 +1,5 @@
 {
-  "name": "quran-teleprompter",
+  "name": "qiyam-mushaf",
   "version": "1.0.0",
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.1",
@@ -41,6 +41,7 @@
   "dependencies": {
     "@fontsource/amiri": "^5.2.8",
     "fastest-levenshtein": "^1.0.16",
+    "idb": "^8.0.3",
     "virtua": "^0.48.5"
   }
 }
