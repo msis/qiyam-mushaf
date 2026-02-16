@@ -26,7 +26,7 @@ After completing the code, ask the user if they want a playground link. Only cal
 
 ## Project Overview
 
-Quran Teleprompter - A SvelteKit 5 web app that displays Quran text and uses speech recognition to highlight words as the user reads aloud. Auto-advances verses when all words are matched.
+Qiyam Mushaf - A SvelteKit 5 web app that displays Quran text and uses speech recognition to highlight words as the user reads aloud. Auto-advances verses when all words are matched.
 
 ## Commands
 
