@@ -68,3 +68,27 @@
     highlightedCount: 15,
   }}
 />
+
+<Story
+  name="Bookmarked"
+  args={{
+    verse: mockVerseAlFatihah1,
+    verseKey: '1:1',
+    surahNumber: 1,
+    isCurrentVerse: false,
+    highlightedCount: 0,
+    isBookmarked: true,
+  }}
+/>
+
+<Story
+  name="Current and Bookmarked"
+  args={{
+    verse: mockVerseAlFatihah1,
+    verseKey: '1:1',
+    surahNumber: 1,
+    isCurrentVerse: true,
+    highlightedCount: 2,
+    isBookmarked: true,
+  }}
+/>

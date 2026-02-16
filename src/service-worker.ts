@@ -16,10 +16,16 @@ const ASSETS = [
 	...files // everything in static/
 ];
 
-// Install: cache all static assets
+// Skip caching in dev mode
+const isDev = import.meta.env.DEV;
+
 self.addEventListener('install', (event) => {
 	event.waitUntil(
 		(async () => {
+			if (isDev) {
+				await self.skipWaiting();
+				return;
+			}
 			const cache = await caches.open(CACHE);
 			await cache.addAll(ASSETS);
 			// Take over immediately
@@ -45,6 +51,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
 	// Only handle GET requests
 	if (event.request.method !== 'GET') return;
+	if (isDev) return; // Skip caching in dev mode
 
 	const url = new URL(event.request.url);
 

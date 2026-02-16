@@ -6,10 +6,11 @@
 		surahNumber: number;
 		isCurrentVerse: boolean;
 		highlightedCount: number;
+		isBookmarked?: boolean;
 		onclick?: (surahNumber: number, verseNumber: number) => void;
 	}
 
-	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedCount, onclick }: Props = $props();
+	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedCount, isBookmarked = false, onclick }: Props = $props();
 
 	const uthmaniWords = $derived(verse.uthmani.trim().split(/\s+/));
 
@@ -57,6 +58,13 @@
 		>
 			{surahNumber}:{verse.number}
 		</span>
+		{#if isBookmarked}
+			<span class="inline-block text-amber-500 ml-1" title="Bookmarked">
+				<svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24">
+					<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+				</svg>
+			</span>
+		{/if}
 		{#each uthmaniWords as uthmaniWord, uIdx (uIdx)}
 			{@const isFrontier = uIdx === frontierUthmaniIdx}
 			{@const isRead = !isFrontier && (highlightedUthmaniSet?.has(uIdx) ?? false)}
