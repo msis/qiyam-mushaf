@@ -42,6 +42,13 @@
 	function handleToggle() {
 		onToggleContinue(!continueEnabled);
 	}
+
+	function handleToggleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handleToggle();
+		}
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -69,6 +76,7 @@
 		<div class="space-y-3">
 			<button
 				onclick={handleToggle}
+				onkeydown={handleToggleKeydown}
 				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center"
 			>
 				<svg
@@ -84,10 +92,11 @@
 					<span class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
 						<input 
 							type="checkbox" 
+							id="continue-toggle"
 							checked={continueEnabled}
 							class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"
 						/>
-						<label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-500 cursor-pointer">
+						<label for="continue-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-500 cursor-pointer">
 						</label>
 					</span>
 				</span>
