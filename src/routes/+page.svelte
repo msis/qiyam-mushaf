@@ -25,8 +25,8 @@
 	const bookmarkStore = getBookmarkStore();
 	const settingsStore = getSettingsStore();
 	
-	// Initialize speech matcher with loaded data
-	$effect(() => {
+	// Initialize speech matcher with loaded data (only once on mount)
+	onMount(() => {
 		createSpeechMatcher(data.allWords, speechStore);
 	});
 	

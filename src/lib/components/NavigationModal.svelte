@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Surah } from '$lib/types';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		onClose: () => void;
@@ -16,8 +17,8 @@
 	let localSurah = $state(0);
 	let localVerse = $state(0);
 
-	// Initialize local state from props
-	$effect(() => {
+	// Initialize local state from props on mount only
+	onMount(() => {
 		localSurah = selectedSurah;
 		localVerse = selectedVerse;
 	});
