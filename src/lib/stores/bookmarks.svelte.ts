@@ -1,17 +1,21 @@
 import type { GlobalVerseKey } from '$lib/types';
-import { BookmarkService, type Bookmark } from '$lib/services/BookmarkService';
+import { BookmarkService, type Bookmark, type ContinuePosition } from '$lib/services/BookmarkService';
 
 class BookmarkStore {
 	bookmarks = $state<Bookmark[]>([]);
 	bookmarkedKeys = $state<Set<string>>(new Set());
+	continuePosition = $state<ContinuePosition | null>(null);
+	continueEnabled = $state(false);
 	private service = BookmarkService.getInstance();
 	private initialized = false;
 
 	async init(): Promise<void> {
 		if (this.initialized) return;
 		this.initialized = true;
-		const bookmarks = await this.service.loadBookmarks();
-		this.bookmarks = bookmarks;
+		await this.service.loadBookmarks();
+		this.bookmarks = this.service.getBookmarks();
+		this.continuePosition = this.service.getContinuePosition();
+		this.continueEnabled = this.service.isContinueEnabled();
 		this.rebuildKeySet();
 	}
 
@@ -32,6 +36,24 @@ class BookmarkStore {
 
 	isBookmarked(verseKey: GlobalVerseKey): boolean {
 		return this.bookmarkedKeys.has(verseKey);
+	}
+
+	async setContinuePosition(verseKey: GlobalVerseKey, wordIndex: number): Promise<void> {
+		await this.service.setContinuePosition(verseKey, wordIndex);
+		this.continuePosition = this.service.getContinuePosition();
+	}
+
+	getContinuePosition(): ContinuePosition | null {
+		return this.continuePosition;
+	}
+
+	async setContinueEnabled(enabled: boolean): Promise<void> {
+		await this.service.setContinueEnabled(enabled);
+		this.continueEnabled = enabled;
+	}
+
+	getContinueEnabled(): boolean {
+		return this.continueEnabled;
 	}
 }
 

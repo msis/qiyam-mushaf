@@ -3,10 +3,19 @@
 		onClose: () => void;
 		onOpenAcknowledgments: () => void;
 		onOpenBookmarks: () => void;
+		continueEnabled?: boolean;
+		onToggleContinue: (enabled: boolean) => void;
 		bookmarkCount?: number;
 	}
 
-	let { onClose, onOpenAcknowledgments, onOpenBookmarks, bookmarkCount = 0 }: Props = $props();
+	let { 
+		onClose, 
+		onOpenAcknowledgments, 
+		onOpenBookmarks, 
+		continueEnabled = false,
+		onToggleContinue,
+		bookmarkCount = 0 
+	}: Props = $props();
 
 	function handleBackdropClick(e: MouseEvent) {
 		if (e.target === e.currentTarget) {
@@ -26,7 +35,12 @@
 	}
 
 	function handleBookmarks() {
+		onClose();
 		onOpenBookmarks();
+	}
+
+	function handleToggle() {
+		onToggleContinue(!continueEnabled);
 	}
 </script>
 
@@ -53,6 +67,31 @@
 		</div>
 
 		<div class="space-y-3">
+			<button
+				onclick={handleToggle}
+				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center"
+			>
+				<svg
+					class="w-5 h-5 mr-3"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				Continue where you left off
+				<span class="ml-auto">
+					<span class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+						<input 
+							type="checkbox" 
+							checked={continueEnabled}
+							class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"
+						/>
+						<label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-500 cursor-pointer">
+						</label>
+					</span>
+				</span>
+			</button>
 			<button
 				onclick={handleBookmarks}
 				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center"
@@ -99,3 +138,13 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.toggle-checkbox:checked {
+		right: 0;
+		border-color: #f59e0b;
+	}
+	.toggle-checkbox:checked + .toggle-label {
+		background-color: #f59e0b;
+	}
+</style>

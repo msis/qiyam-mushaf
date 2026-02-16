@@ -124,6 +124,7 @@ export const DB_VERSION = 5;
 export const STORE_NAME = "cache";
 export const CACHE_KEY = "quran-data";
 export const BOOKMARKS_STORE = "bookmarks";
+export const CONTINUE_STORE = "continue";
 
 // Word matching configuration
 export const WINDOW_MULTIPLIER = 1.1; // Scale spoken word count to account for speech API under-delivering

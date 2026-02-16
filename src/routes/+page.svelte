@@ -108,8 +108,51 @@
 		bookmarkStore.toggleBookmark(verseKey);
 	}
 
+	async function handleToggleContinue(enabled: boolean): Promise<void> {
+		await bookmarkStore.setContinueEnabled(enabled);
+	}
+
+	// Flag to prevent saving position during restore
+	let isRestoring = false;
+
+	async function restorePosition(): Promise<void> {
+		isRestoring = true;
+		await bookmarkStore.init();
+		
+		// Only restore if continue is enabled
+		if (bookmarkStore.getContinueEnabled()) {
+			const continuePos = bookmarkStore.getContinuePosition();
+			if (continuePos) {
+				const pos = fromGlobalKey(continuePos.verseKey);
+				const targetVerse = data.surahs[pos.surah - 1]?.verses[pos.verse - 1];
+				if (targetVerse) {
+					const idx = continuePos.wordIndex > 0 
+						? targetVerse.words[0]?.globalIndex + continuePos.wordIndex 
+						: targetVerse.words[0]?.globalIndex ?? 0;
+					scrollFloor = idx;
+					lastScrolledKey = null;
+					appState.finalCursor = idx;
+					appState.nextWordIndex = idx;
+				}
+			}
+		}
+		isRestoring = false;
+	}
+
+	async function updateContinuePosition(): Promise<void> {
+		if (isRestoring) return;
+		await bookmarkStore.setContinuePosition(currentVerseKey, 0);
+	}
+
 	onMount(() => {
-		bookmarkStore.init();
+		restorePosition();
+	});
+
+	$effect(() => {
+		const key = currentVerseKey;
+		if (key) {
+			updateContinuePosition();
+		}
 	});
 </script>
 
@@ -166,6 +209,8 @@
 			onClose={() => (appState.isSettingsModalOpen = false)}
 			onOpenAcknowledgments={() => (appState.isAcknowledgmentsOpen = true)}
 			onOpenBookmarks={openBookmarkList}
+			onToggleContinue={handleToggleContinue}
+			continueEnabled={bookmarkStore.getContinueEnabled()}
 			bookmarkCount={bookmarkStore.bookmarks.length}
 		/>
 	{/if}
