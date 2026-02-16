@@ -14,6 +14,7 @@
 	onclick={onToggle}
 	class="bg-gray-800 hover:bg-gray-700 p-2 rounded-full shadow-lg transition-colors"
 	title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+	aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
 >
 	<svg
 		class="w-5 h-5 {isBookmarked ? 'text-amber-500 fill-amber-500' : 'text-gray-400'}"
