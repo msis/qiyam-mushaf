@@ -26,13 +26,14 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div
+	<div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
 	role="dialog"
 	aria-modal="true"
 	aria-labelledby="modal-title"
 	tabindex="-1"
+	dir="ltr"
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
 		<div class="flex justify-between items-center mb-6">
