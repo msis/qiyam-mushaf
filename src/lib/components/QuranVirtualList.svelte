@@ -11,9 +11,10 @@
 		nextWordIndex: number;
 		bookmarkedKeys?: Set<string>;
 		onVerseClick?: (surahNumber: number, verseNumber: number) => void;
+		onToggleVerseBookmark?: (verseKey: GlobalVerseKey) => void;
 	}
 
-	let { items, currentVerseKey, nextWordIndex, bookmarkedKeys = new Set(), onVerseClick }: Props = $props();
+	let { items, currentVerseKey, nextWordIndex, bookmarkedKeys = new Set(), onVerseClick, onToggleVerseBookmark }: Props = $props();
 
 	const ITEM_GAP = 8;
 	const TOP_PADDING = 70; // clears fixed position badge
@@ -106,6 +107,7 @@
 					highlightedCount={isActive ? Math.max(0, Math.min(item.verse.words.length, nextWordIndex - offset)) : 0}
 					isBookmarked={isBookmarked}
 					onclick={onVerseClick}
+					onToggleVerseBookmark={onToggleVerseBookmark}
 				/>
 			{/if}
 		</div>

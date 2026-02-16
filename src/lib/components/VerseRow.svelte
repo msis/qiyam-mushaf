@@ -8,11 +8,16 @@
 		highlightedCount: number;
 		isBookmarked?: boolean;
 		onclick?: (surahNumber: number, verseNumber: number) => void;
+		onToggleVerseBookmark?: (verseKey: GlobalVerseKey) => void;
 	}
 
-	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedCount, isBookmarked = false, onclick }: Props = $props();
+	let { verse, verseKey, surahNumber, isCurrentVerse, highlightedCount, isBookmarked = false, onclick, onToggleVerseBookmark }: Props = $props();
 
 	const uthmaniWords = $derived(verse.uthmani.trim().split(/\s+/));
+
+	function handleDoubleClick() {
+		onToggleVerseBookmark?.(verseKey);
+	}
 
 	// Convert contiguous simple-word count → uthmani index set for highlighting
 	const highlightedUthmaniSet = $derived.by(() => {
@@ -41,6 +46,7 @@
 		? 'bg-gray-800/60 text-amber-50'
 		: 'text-gray-400 hover:bg-gray-800/50'}"
 	onclick={handleClick}
+	ondblclick={handleDoubleClick}
 	onkeydown={(e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			if (e.key === ' ') e.preventDefault();

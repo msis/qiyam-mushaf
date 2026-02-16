@@ -108,6 +108,10 @@
 		bookmarkStore.toggleBookmark(verseKey);
 	}
 
+	function handleToggleVerseBookmark(verseKey: GlobalVerseKey): void {
+		bookmarkStore.toggleBookmark(verseKey);
+	}
+
 	async function handleToggleContinue(enabled: boolean): Promise<void> {
 		await bookmarkStore.setContinueEnabled(enabled);
 	}
@@ -191,6 +195,7 @@
 			nextWordIndex={appState.nextWordIndex}
 			bookmarkedKeys={bookmarkStore.bookmarkedKeys}
 			onVerseClick={setCursorToVerse}
+			onToggleVerseBookmark={handleToggleVerseBookmark}
 		/>
 	</div>
 
