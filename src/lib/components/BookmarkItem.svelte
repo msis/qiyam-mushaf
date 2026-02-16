@@ -50,6 +50,12 @@
 
 		touchState = null;
 	}
+
+	function handlePointerCancel(e: PointerEvent) {
+		if (!touchState) return;
+		(e.target as HTMLElement).releasePointerCapture(e.pointerId);
+		touchState = null;
+	}
 </script>
 
 <div class="relative overflow-hidden rounded-lg">
@@ -73,6 +79,7 @@
 		onpointerdown={handlePointerDown}
 		onpointermove={handlePointerMove}
 		onpointerup={handlePointerUp}
+		onpointercancel={handlePointerCancel}
 		aria-label="{surah?.name ?? ''} verse {verseNumber}, press Delete to remove"
 	>
 		<button
