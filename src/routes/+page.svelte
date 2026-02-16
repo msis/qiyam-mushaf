@@ -118,6 +118,8 @@
 
 	// Flag to prevent saving position during restore
 	let isRestoring = false;
+	let isSavingPosition = false;
+	let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	async function restorePosition(): Promise<void> {
 		isRestoring = true;
@@ -141,9 +143,21 @@
 		isRestoring = false;
 	}
 
-	async function updateContinuePosition(): Promise<void> {
-		if (isRestoring) return;
-		await bookmarkStore.setContinuePosition(currentVerseKey);
+	function updateContinuePosition(): void {
+		if (isRestoring || isSavingPosition) return;
+
+		if (saveTimeout) clearTimeout(saveTimeout);
+
+		saveTimeout = setTimeout(async () => {
+			isSavingPosition = true;
+			try {
+				await bookmarkStore.setContinuePosition(currentVerseKey);
+			} catch (e) {
+				console.error('Failed to save position:', e);
+			} finally {
+				isSavingPosition = false;
+			}
+		}, 500);
 	}
 
 	onMount(() => {
