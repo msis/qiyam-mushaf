@@ -3,7 +3,7 @@ import { BookmarkService, type Bookmark, type ContinuePosition } from '$lib/serv
 
 class BookmarkStore {
 	bookmarks = $state<Bookmark[]>([]);
-	bookmarkedKeys = $state<Set<string>>(new Set());
+	bookmarkedKeys = $derived(new Set(this.bookmarks.map(b => b.verseKey)));
 	continuePosition = $state<ContinuePosition | null>(null);
 	continueEnabled = $state(true);
 	private service = BookmarkService.getInstance();
@@ -16,22 +16,15 @@ class BookmarkStore {
 		this.bookmarks = this.service.getBookmarks();
 		this.continuePosition = this.service.getContinuePosition();
 		this.continueEnabled = this.service.isContinueEnabled();
-		this.rebuildKeySet();
-	}
-
-	private rebuildKeySet(): void {
-		this.bookmarkedKeys = new Set(this.bookmarks.map(b => b.verseKey));
 	}
 
 	async toggleBookmark(verseKey: GlobalVerseKey): Promise<void> {
 		if (this.service.isBookmarked(verseKey)) {
 			await this.service.removeBookmark(verseKey);
-			this.bookmarks = this.service.getBookmarks();
 		} else {
 			await this.service.addBookmark(verseKey);
-			this.bookmarks = this.service.getBookmarks();
 		}
-		this.rebuildKeySet();
+		this.bookmarks = this.service.getBookmarks();
 	}
 
 	isBookmarked(verseKey: GlobalVerseKey): boolean {
