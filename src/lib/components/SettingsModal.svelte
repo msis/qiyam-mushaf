@@ -12,7 +12,7 @@
 		onClose, 
 		onOpenAcknowledgments, 
 		onOpenBookmarks, 
-		continueEnabled = false,
+		continueEnabled = true,
 		onToggleContinue,
 		bookmarkCount = 0 
 	}: Props = $props();
