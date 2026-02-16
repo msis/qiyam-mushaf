@@ -13,7 +13,7 @@
 	import ErrorToast from '$lib/components/ErrorToast.svelte';
 	import RecordButton from '$lib/components/RecordButton.svelte';
 	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
-	import BookmarkList from '$lib/components/BookmarkList.svelte';
+	import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -225,7 +225,7 @@
 	{/if}
 
 	{#if isBookmarkModalOpen}
-		<BookmarkList
+		<BookmarkModal
 			bookmarks={bookmarkStore.bookmarks}
 			surahs={data.surahs}
 			onClose={() => (isBookmarkModalOpen = false)}

@@ -1,10 +1,10 @@
 <script module>
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import BookmarkList from '$lib/components/BookmarkList.svelte';
+  import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 
   const { Story } = defineMeta({
-    title: 'Components/BookmarkList',
-    component: BookmarkList,
+    title: 'Components/BookmarkModal',
+    component: BookmarkModal,
   });
 
   const mockSurahs = [
