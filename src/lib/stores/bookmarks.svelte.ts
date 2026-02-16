@@ -5,7 +5,7 @@ class BookmarkStore {
 	bookmarks = $state<Bookmark[]>([]);
 	bookmarkedKeys = $state<Set<string>>(new Set());
 	continuePosition = $state<ContinuePosition | null>(null);
-	continueEnabled = $state(false);
+	continueEnabled = $state(true);
 	private service = BookmarkService.getInstance();
 	private initialized = false;
 

@@ -29,7 +29,7 @@ export class BookmarkService {
 	private static instance: BookmarkService | undefined;
 	private bookmarks: Bookmark[] = [];
 	private continuePosition: ContinuePosition | null = null;
-	private continueEnabled = false;
+	private continueEnabled = true;
 	private db: IDBDatabase | null = null;
 	private initialized = false;
 
@@ -108,7 +108,7 @@ export class BookmarkService {
 				request.onsuccess = () => resolve(request.result || null);
 			});
 
-			this.continueEnabled = settings?.continueEnabled ?? false;
+			this.continueEnabled = settings?.continueEnabled ?? true;
 
 			this.initialized = true;
 			return this.bookmarks;
