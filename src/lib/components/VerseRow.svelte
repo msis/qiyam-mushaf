@@ -56,7 +56,11 @@
 	role="button"
 	tabindex="0"
 >
-	<p class="text-2xl leading-relaxed font-arabic text-center" dir="rtl">
+	<p
+		class="leading-relaxed font-arabic text-center"
+		dir="rtl"
+		style="font-size: var(--verse-font-size, 28px)"
+	>
 		{#if isBookmarked}
 			<span class="inline-block text-amber-500 ml-1" title="Bookmarked">
 				<svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24">

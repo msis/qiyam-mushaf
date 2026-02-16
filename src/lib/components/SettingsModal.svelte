@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getSettingsStore } from '$lib/stores/settings.svelte';
+	import FontSizeControl from '$lib/components/FontSizeControl.svelte';
 	interface Props {
 		onClose: () => void;
 		onOpenAcknowledgments: () => void;
@@ -7,6 +9,8 @@
 		onToggleContinue: (enabled: boolean) => void;
 		bookmarkCount?: number;
 	}
+
+	const settingsStore = getSettingsStore();
 
 	let { 
 		onClose, 
@@ -53,6 +57,10 @@
 			handleToggle();
 		}
 	}
+
+	function handleFontSizeChange(nextSize: number): void {
+		settingsStore.setVerseFontSize(nextSize);
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -78,6 +86,10 @@
 		</div>
 
 		<div class="space-y-3">
+			<FontSizeControl
+				value={settingsStore.verseFontSize}
+				onChange={handleFontSizeChange}
+			/>
 			<div
 				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center cursor-pointer"
 				onclick={handleToggle}
