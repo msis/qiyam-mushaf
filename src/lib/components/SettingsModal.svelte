@@ -74,10 +74,13 @@
 		</div>
 
 		<div class="space-y-3">
-			<button
+			<div
+				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center cursor-pointer"
 				onclick={handleToggle}
 				onkeydown={handleToggleKeydown}
-				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center"
+				role="switch"
+				aria-checked={continueEnabled}
+				tabindex="0"
 			>
 				<svg
 					class="w-5 h-5 mr-3"
@@ -94,13 +97,14 @@
 							type="checkbox" 
 							id="continue-toggle"
 							checked={continueEnabled}
+							onclick={(e) => e.stopPropagation()}
 							class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"
 						/>
 						<label for="continue-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-500 cursor-pointer">
 						</label>
 					</span>
 				</span>
-			</button>
+			</div>
 			<button
 				onclick={handleBookmarks}
 				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center"
