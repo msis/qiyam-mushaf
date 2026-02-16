@@ -24,7 +24,12 @@
 	const speechStore = getSpeechStore();
 	const bookmarkStore = getBookmarkStore();
 	const settingsStore = getSettingsStore();
-	createSpeechMatcher(data.allWords, speechStore);
+	
+	// Initialize speech matcher with loaded data
+	$effect(() => {
+		createSpeechMatcher(data.allWords, speechStore);
+	});
+	
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
 	let isBookmarkModalOpen = $state(false);

@@ -13,8 +13,14 @@
 
 	// Local state for selection (doesn't navigate until "Go" is clicked)
 	// Initialized from props — component mounts fresh each time via parent {#if}
-	let localSurah = $state(selectedSurah);
-	let localVerse = $state(selectedVerse);
+	let localSurah = $state(0);
+	let localVerse = $state(0);
+
+	// Initialize local state from props
+	$effect(() => {
+		localSurah = selectedSurah;
+		localVerse = selectedVerse;
+	});
 
 	let selectedSurahData = $derived(surahs.find((s) => s.number === localSurah));
 
@@ -34,6 +40,15 @@
 		}
 	}
 
+	function handleBackdropKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			if (e.target === e.currentTarget) {
+				onClose();
+			}
+		}
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			onClose();
@@ -48,6 +63,7 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
+	onkeydown={handleBackdropKeydown}
 	role="dialog"
 	aria-modal="true"
 	aria-labelledby="modal-title"

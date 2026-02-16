@@ -78,6 +78,7 @@
 		</svg>
 	</div>
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
 		class="flex items-center justify-between rounded-lg p-3 bg-gray-700 hover:bg-gray-600 transition-colors"
 		style="transform: translateX(-{getOffset()}px); touch-action: none;"

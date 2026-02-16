@@ -13,6 +13,15 @@
 		}
 	}
 
+	function handleBackdropKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			if (e.target === e.currentTarget) {
+				onClose();
+			}
+		}
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			onClose();
@@ -25,6 +34,7 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
+	onkeydown={handleBackdropKeydown}
 	role="dialog"
 	aria-modal="true"
 	aria-labelledby="modal-title"
