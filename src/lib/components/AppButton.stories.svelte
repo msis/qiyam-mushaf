@@ -1,17 +1,22 @@
 <script module>
-	import { defineMeta } from '@storybook/addon-svelte-csf';
-	import AppButton from '$lib/components/AppButton.svelte';
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import AppButton from "$lib/components/AppButton.svelte";
 
 	const { Story } = defineMeta({
-		title: 'Components/AppButton',
-		component: AppButton
+		title: "Components/AppButton",
+		component: AppButton,
 	});
 </script>
 
 <Story name="Default">
 	<AppButton ariaLabel="Open bookmarks">
 		{#snippet icon()}
-			<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg
+				class="w-5 h-5 mr-3"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -25,9 +30,18 @@
 </Story>
 
 <Story name="With Additional Props">
-	<AppButton ariaLabel="Send feedback" title="Send feedback" onclick={() => console.log('AppButton clicked')}>
+	<AppButton
+		ariaLabel="Send feedback"
+		title="Send feedback"
+		onclick={() => console.log("AppButton clicked")}
+	>
 		{#snippet icon()}
-			<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg
+				class="w-5 h-5 mr-3"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
