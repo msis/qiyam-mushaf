@@ -1,4 +1,4 @@
-# Quran Teleprompter Web App
+# Qiyam Mushaf
 
 A minimalist, modern web application that helps users read the Quran by automatically scrolling and highlighting words as they read aloud using speech recognition.
 
@@ -213,7 +213,7 @@ If you want to deploy to a custom domain or subdirectory:
 2. Create a new repository variable named `BASE_PATH`
 3. Set the value:
    - For custom domain (e.g., `quran.example.com`): leave empty or set to ``
-   - For subdirectory (e.g., `username.github.io/taraweeh-mushaf`): set to `/taraweeh-mushaf`
+   - For subdirectory (e.g., `username.github.io/qiyam-mushaf`): set to `/qiyam-mushaf`
 
 The `BASE_PATH` variable configures the application to work correctly with the deployment path.
 
