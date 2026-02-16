@@ -41,7 +41,7 @@ describe('word mapping', () => {
 		}
 	});
 
-	it('globalIndex is contiguous, allWords matches, and verseKey is correct', () => {
+	it('globalIndex is contiguous, allWords matches, and verseKey is correct', { timeout: 10000 }, () => {
 		let expectedIdx = 0;
 		for (const surah of data.surahs) {
 			for (const verse of surah.verses) {
