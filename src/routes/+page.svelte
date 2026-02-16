@@ -130,9 +130,7 @@
 				const pos = fromGlobalKey(continuePos.verseKey);
 				const targetVerse = data.surahs[pos.surah - 1]?.verses[pos.verse - 1];
 				if (targetVerse) {
-					const idx = continuePos.wordIndex > 0 
-						? targetVerse.words[0]?.globalIndex + continuePos.wordIndex 
-						: targetVerse.words[0]?.globalIndex ?? 0;
+					const idx = targetVerse.words[0]?.globalIndex ?? 0;
 					scrollFloor = idx;
 					lastScrolledKey = null;
 					appState.finalCursor = idx;
@@ -145,7 +143,7 @@
 
 	async function updateContinuePosition(): Promise<void> {
 		if (isRestoring) return;
-		await bookmarkStore.setContinuePosition(currentVerseKey, 0);
+		await bookmarkStore.setContinuePosition(currentVerseKey);
 	}
 
 	onMount(() => {

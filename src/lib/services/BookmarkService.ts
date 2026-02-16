@@ -9,7 +9,6 @@ export interface Bookmark {
 export interface ContinuePosition {
 	id: 'continue';
 	verseKey: GlobalVerseKey;
-	wordIndex: number;
 	updatedAt: number;
 }
 
@@ -175,11 +174,10 @@ export class BookmarkService {
 		return this.bookmarks;
 	}
 
-	async setContinuePosition(verseKey: GlobalVerseKey, wordIndex: number): Promise<void> {
+	async setContinuePosition(verseKey: GlobalVerseKey): Promise<void> {
 		const position: ContinuePosition = {
 			id: 'continue',
 			verseKey,
-			wordIndex,
 			updatedAt: Date.now()
 		};
 

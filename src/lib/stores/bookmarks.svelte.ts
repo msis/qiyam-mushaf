@@ -38,8 +38,8 @@ class BookmarkStore {
 		return this.bookmarkedKeys.has(verseKey);
 	}
 
-	async setContinuePosition(verseKey: GlobalVerseKey, wordIndex: number): Promise<void> {
-		await this.service.setContinuePosition(verseKey, wordIndex);
+	async setContinuePosition(verseKey: GlobalVerseKey): Promise<void> {
+		await this.service.setContinuePosition(verseKey);
 		this.continuePosition = this.service.getContinuePosition();
 	}
 
