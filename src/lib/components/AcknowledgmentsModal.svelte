@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AcknowledgmentsContent from '$lib/content/acknowledgments.md';
+
 	interface Props {
 		onClose: () => void;
 	}
@@ -39,26 +41,8 @@
 			</button>
 		</div>
 
-		<div class="text-amber-100 space-y-4">
-			<p>
-				This Quran Teleprompter app uses the Quran text from the
-				<a
-					href="https://quran.com"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="text-amber-400 hover:text-amber-300 underline"
-				>
-					quran.com
-				</a>
-				API.
-			</p>
-			<p>
-				The Arabic text is provided in the Uthmani script with diacritics for accurate
-				pronunciation.
-			</p>
-			<p class="text-sm text-gray-400">
-				Speech recognition powered by the Web Speech API.
-			</p>
+		<div class="text-amber-100 space-y-4 prose prose-invert max-w-none">
+			<AcknowledgmentsContent />
 		</div>
 
 		<button
