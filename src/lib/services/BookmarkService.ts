@@ -1,5 +1,5 @@
 import type { GlobalVerseKey } from '$lib/types';
-import { DB_NAME, BOOKMARKS_STORE, CONTINUE_STORE } from '$lib/utils/constants';
+import { BOOKMARK_DB_NAME, BOOKMARK_DB_VERSION, BOOKMARKS_STORE, CONTINUE_STORE, SETTINGS_STORE } from '$lib/utils/constants';
 
 export interface Bookmark {
 	verseKey: GlobalVerseKey;
@@ -16,11 +16,6 @@ export interface AppSettings {
 	id: 'settings';
 	continueEnabled: boolean;
 }
-
-const BOOKMARK_DB_NAME = `${DB_NAME}-bookmarks`;
-const BOOKMARK_DB_VERSION = 3;
-
-const SETTINGS_STORE = 'settings';
 
 export class BookmarkService {
 	private static instance: BookmarkService | undefined;

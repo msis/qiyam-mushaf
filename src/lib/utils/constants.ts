@@ -120,11 +120,14 @@ export const LANGUAGE_CODE = "ar-SA";
 
 // IndexedDB configuration
 export const DB_NAME = "quran-teleprompter";
-export const DB_VERSION = 5;
+export const DB_VERSION = 4;
 export const STORE_NAME = "cache";
 export const CACHE_KEY = "quran-data";
+export const BOOKMARK_DB_NAME = `${DB_NAME}-bookmarks`;
+export const BOOKMARK_DB_VERSION = 3;
 export const BOOKMARKS_STORE = "bookmarks";
 export const CONTINUE_STORE = "continue";
+export const SETTINGS_STORE = "settings";
 
 // Word matching configuration
 export const WINDOW_MULTIPLIER = 1.1; // Scale spoken word count to account for speech API under-delivering
