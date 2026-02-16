@@ -158,7 +158,7 @@
 				{/if}
 			</AppButton>
 			{#if WHATSAPP_FEEDBACK_INVITE}
-				<AppButton onclick={handleOpenFeedback} ariaLabel="Send feedback on WhatsApp" class="text-amber-100">
+				<AppButton onclick={handleOpenFeedback} ariaLabel="Send feedback on WhatsApp">
 					{#snippet icon()}
 						<svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
@@ -173,7 +173,7 @@
 				</AppButton>
 			{/if}
 			{#if WHATSAPP_SUPPORT_INVITE}
-				<AppButton onclick={handleOpenSupport} ariaLabel="Get support on WhatsApp" class="text-amber-100">
+				<AppButton onclick={handleOpenSupport} ariaLabel="Get support on WhatsApp">
 					{#snippet icon()}
 						<svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
