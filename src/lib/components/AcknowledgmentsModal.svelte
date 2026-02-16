@@ -41,7 +41,7 @@
 			</button>
 		</div>
 
-		<div class="text-amber-100 space-y-4 prose prose-invert max-w-none">
+		<div class="text-amber-100 space-y-4 prose prose-invert max-w-none max-h-60 overflow-y-auto">
 			<AcknowledgmentsContent />
 		</div>
 
