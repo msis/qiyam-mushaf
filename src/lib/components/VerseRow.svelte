@@ -51,13 +51,6 @@
 	tabindex="0"
 >
 	<p class="text-2xl leading-relaxed font-arabic text-center" dir="rtl">
-		<span
-			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ml-2 align-middle {isCurrentVerse
-				? 'bg-amber-600 text-white'
-				: 'bg-gray-700 text-gray-400'}"
-		>
-			{surahNumber}:{verse.number}
-		</span>
 		{#if isBookmarked}
 			<span class="inline-block text-amber-500 ml-1" title="Bookmarked">
 				<svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24">
@@ -65,6 +58,13 @@
 				</svg>
 			</span>
 		{/if}
+		<span
+			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ml-2 align-middle {isCurrentVerse
+				? 'bg-amber-600 text-white'
+				: 'bg-gray-700 text-gray-400'}"
+		>
+			{surahNumber}:{verse.number}
+		</span>
 		{#each uthmaniWords as uthmaniWord, uIdx (uIdx)}
 			{@const isFrontier = uIdx === frontierUthmaniIdx}
 			{@const isRead = !isFrontier && (highlightedUthmaniSet?.has(uIdx) ?? false)}
