@@ -56,6 +56,13 @@
 		(e.target as HTMLElement).releasePointerCapture(e.pointerId);
 		touchState = null;
 	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Delete' || e.key === 'Backspace') {
+			e.preventDefault();
+			onRemove(bookmark.verseKey);
+		}
+	}
 </script>
 
 <div class="relative overflow-hidden rounded-lg">
@@ -76,6 +83,7 @@
 		style="transform: translateX(-{getOffset()}px); touch-action: none;"
 		role="listitem"
 		tabindex="0"
+		onkeydown={handleKeydown}
 		onpointerdown={handlePointerDown}
 		onpointermove={handlePointerMove}
 		onpointerup={handlePointerUp}
