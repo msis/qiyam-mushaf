@@ -21,9 +21,10 @@
 	args={{
 		label: 'Caption size',
 		value: 16,
-		min: 12,
-		max: 24,
-		step: 2,
+		baseSize: 16,
+		minScale: 0.75,
+		maxScale: 1.25,
+		step: 0.1,
 		onChange: () => console.log('font size change')
 	}}
 />

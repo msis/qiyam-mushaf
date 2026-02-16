@@ -2,8 +2,9 @@
 	interface Props {
 		label?: string;
 		value: number;
-		min?: number;
-		max?: number;
+		baseSize?: number;
+		minScale?: number;
+		maxScale?: number;
 		step?: number;
 		onChange: (value: number) => void;
 	}
@@ -11,33 +12,45 @@
 	let {
 		label = 'Verse font size',
 		value,
-		min = 18,
-		max = 48,
-		step = 1,
+		baseSize = 28,
+		minScale = 0.75,
+		maxScale = 2,
+		step = 0.05,
 		onChange
 	}: Props = $props();
 
-	function clamp(nextValue: number): number {
-		return Math.max(min, Math.min(max, Math.round(nextValue)));
+	let currentScale = $derived(value / baseSize);
+
+	function clampScale(nextScale: number): number {
+		return Math.max(minScale, Math.min(maxScale, nextScale));
 	}
 
-	function update(nextValue: number): void {
-		onChange(clamp(nextValue));
+	function formatScale(scale: number): string {
+		const rounded = Math.round(scale * 100) / 100;
+		if (Number.isInteger(rounded)) {
+			return String(rounded);
+		}
+		return rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+	}
+
+	function updateScale(nextScale: number): void {
+		const clampedScale = clampScale(nextScale);
+		onChange(clampedScale * baseSize);
 	}
 
 	function decrement(): void {
-		update(value - step);
+		updateScale(currentScale - step);
 	}
 
 	function increment(): void {
-		update(value + step);
+		updateScale(currentScale + step);
 	}
 </script>
 
 <div class="w-full bg-gray-700/40 border border-gray-700 text-amber-100 font-medium py-3 px-4 rounded-lg">
 	<div class="flex items-center justify-between mb-3">
 		<span class="text-sm text-amber-200">{label}</span>
-		<span class="text-xs text-amber-100">{value}px</span>
+		<span class="text-xs text-amber-100">{formatScale(currentScale)}x</span>
 	</div>
 	<div class="flex items-center gap-3">
 		<button
@@ -50,13 +63,13 @@
 		</button>
 		<input
 			type="range"
-			min={min}
-			max={max}
+			min={minScale}
+			max={maxScale}
 			step={step}
-			value={value}
+			value={currentScale}
 			class="flex-1 accent-amber-500"
 			oninput={(event: Event) =>
-				update(Number((event.currentTarget as HTMLInputElement).value))}
+				updateScale(Number((event.currentTarget as HTMLInputElement).value))}
 			aria-label={label}
 		/>
 		<button
