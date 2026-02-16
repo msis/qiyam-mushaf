@@ -26,7 +26,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-	<div
+<div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
 	role="dialog"

@@ -7,7 +7,7 @@ This project was inspired by:
   - This project is basically a simpler (follow-along only) version of Tarteel AI, which is a more advanced and feature-rich Quran companion and memorization tool. Please use Tarteel for memorization and more advanced features.
 - [Tanzil](https://tanzil.net/)
   - The Text of the Quran is from Tanzil.
-- [Voice Activated Telepromter](https://github.com/jlecomte/voice-activated-teleprompter/)
+- [Voice Activated Teleprompter](https://github.com/jlecomte/voice-activated-teleprompter/)
   - This is a cool project that inspired some of the technical solutions for this project.
 - [Quran Majeed](https://quranmajeed.com)
   - The bottom navigation bar was inspired by the one in the Quran Majeed app.
