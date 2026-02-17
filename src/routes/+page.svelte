@@ -3,6 +3,7 @@
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
 	import { createSpeechMatcher } from '$lib/stores/speechMatcher.svelte';
 	import { getBookmarkStore } from '$lib/stores/bookmarks.svelte';
+	import { getSettingsStore } from '$lib/stores/settings.svelte';
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
@@ -18,8 +19,7 @@
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
-	import { getSettingsStore } from '$lib/stores/settings.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	let { data } = $props();
 
@@ -31,6 +31,8 @@
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
 	let isBookmarkModalOpen = $state(false);
+	let updateAvailable = $state(false);
+	let isApplyingUpdate = $state(false);
 
 	// --- Derived position from nextWordIndex (O(1) field read) ---
 
@@ -56,20 +58,11 @@
 
 	// --- Reactive effects ---
 
-	// Forward-only auto-scroll: prevents jitter from interim speech oscillation.
-	// User navigation resets both variables, allowing any direction.
-	let scrollFloor = 0;
-	let lastScrolledKey: GlobalVerseKey | null = null;
-
+	// Auto-scroll triggered only by nextWordIndex changes.
+	// currentVerseKey is untracked (it's derived from nextWordIndex anyway).
 	$effect(() => {
-		const key = currentVerseKey;
-		const idx = appState.nextWordIndex;
-
-		if (key === lastScrolledKey) return;
-		if (idx < scrollFloor) return;
-
-		scrollFloor = idx;
-		lastScrolledKey = key;
+		appState.nextWordIndex;
+		const key = untrack(() => currentVerseKey);
 		scrollToVerse(key);
 	});
 
@@ -85,8 +78,6 @@
 	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
 		const idx = targetVerse?.words[0]?.globalIndex ?? 0;
-		scrollFloor = idx;
-		lastScrolledKey = null;
 		appState.finalCursor = idx;
 		appState.nextWordIndex = idx;
 	}
@@ -138,8 +129,6 @@
 				const targetVerse = data.surahs[pos.surah - 1]?.verses[pos.verse - 1];
 				if (targetVerse) {
 					const idx = targetVerse.words[0]?.globalIndex ?? 0;
-					scrollFloor = idx;
-					lastScrolledKey = null;
 					appState.finalCursor = idx;
 					appState.nextWordIndex = idx;
 				}
@@ -165,8 +154,95 @@
 		}, 500);
 	}
 
+	async function applyUpdateAndReload(): Promise<void> {
+		if (isApplyingUpdate) return;
+		isApplyingUpdate = true;
+
+		let updateTimeout: ReturnType<typeof setTimeout> | null = null;
+
+		const clearUpdateTimeout = () => {
+			if (updateTimeout !== null) {
+				clearTimeout(updateTimeout);
+				updateTimeout = null;
+			}
+		};
+
+		try {
+			const registration = await navigator.serviceWorker.getRegistration();
+			const waiting = registration?.waiting;
+
+			if (waiting) {
+				updateTimeout = setTimeout(() => {
+					console.warn('Service worker update did not complete in time; resetting update state.');
+					isApplyingUpdate = false;
+				}, 10000);
+
+				waiting.postMessage({ type: 'SKIP_WAITING' });
+				return;
+			}
+
+			clearUpdateTimeout();
+			window.location.reload();
+		} catch {
+			clearUpdateTimeout();
+			isApplyingUpdate = false;
+			window.location.reload();
+		}
+	}
+
 	onMount(() => {
 		restorePosition();
+
+		if (!('serviceWorker' in navigator)) return;
+
+		let hasReloaded = false;
+		const onControllerChange = () => {
+			if (hasReloaded) return;
+			hasReloaded = true;
+			window.location.reload();
+		};
+
+		navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+		let registration: ServiceWorkerRegistration | undefined;
+		let onUpdateFound: (() => void) | undefined;
+
+		void navigator.serviceWorker.getRegistration().then((reg) => {
+			if (!reg) return;
+			registration = reg;
+
+			const syncUpdateFlag = () => {
+				if (reg.waiting && navigator.serviceWorker.controller) {
+					updateAvailable = true;
+				}
+			};
+
+			syncUpdateFlag();
+
+			onUpdateFound = () => {
+				const installing = reg.installing;
+				if (!installing) return;
+
+				installing.addEventListener(
+					'statechange',
+					() => {
+						if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+							updateAvailable = true;
+						}
+					},
+					{ once: true }
+				);
+			};
+
+			reg.addEventListener('updatefound', onUpdateFound);
+		});
+
+		return () => {
+			navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+			if (registration && onUpdateFound) {
+				registration.removeEventListener('updatefound', onUpdateFound);
+			}
+		};
 	});
 
 	$effect(() => {
@@ -179,7 +255,7 @@
 
 <div
 	class="h-screen bg-gray-900 flex flex-col"
-	style="--verse-font-size: {settingsStore.verseFontSize}px"
+	style:--verse-font-size="{settingsStore.verseFontSize}px"
 >
 	<div class="fixed top-4 right-4 z-40">
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
@@ -197,6 +273,19 @@
 			onToggle={handleToggleBookmark}
 		/>
 	</div>
+
+	{#if updateAvailable}
+		<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50">
+			<button
+				type="button"
+				onclick={applyUpdateAndReload}
+				class="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg"
+				disabled={isApplyingUpdate}
+			>
+				{isApplyingUpdate ? 'Updating…' : 'New version available — Reload'}
+			</button>
+		</div>
+	{/if}
 
 	{#if speechStore.errorMessage}
 		<ErrorToast message={speechStore.errorMessage} />
