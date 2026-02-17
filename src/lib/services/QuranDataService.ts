@@ -1,7 +1,7 @@
 import type { QuranData, QuranRawData } from '$lib/types';
 import { processQuranData } from '$lib/utils/dataProcessor';
-import { CACHE_KEY, CACHE_STORE } from '$lib/utils/constants';
-import { getDB } from '$lib/services/db';
+import { CACHE_KEY } from '$lib/utils/constants';
+import { openDatabase, STORE_NAME } from '$lib/services/db';
 
 export class QuranDataService {
 	private static instance: QuranDataService | undefined;
@@ -74,14 +74,28 @@ export class QuranDataService {
 	}
 
 	private async loadFromCache(): Promise<QuranData | null> {
-		const db = await getDB();
-		return (await db.get(CACHE_STORE, CACHE_KEY)) ?? null;
+		const db = await openDatabase();
+		return new Promise((resolve, reject) => {
+			const tx = db.transaction(STORE_NAME, 'readonly');
+			const store = tx.objectStore(STORE_NAME);
+			const request = store.get(CACHE_KEY);
+
+			request.onerror = () => reject(request.error);
+			request.onsuccess = () => resolve(request.result || null);
+		});
 	}
 
 	private async saveToCache(data: QuranData): Promise<void> {
 		try {
-			const db = await getDB();
-			await db.put(CACHE_STORE, data, CACHE_KEY);
+			const db = await openDatabase();
+			return new Promise((resolve, reject) => {
+				const tx = db.transaction(STORE_NAME, 'readwrite');
+				const store = tx.objectStore(STORE_NAME);
+				const request = store.put(data, CACHE_KEY);
+
+				request.onerror = () => reject(request.error);
+				request.onsuccess = () => resolve();
+			});
 		} catch (error) {
 			console.error('Error saving to cache:', error);
 		}
@@ -89,9 +103,18 @@ export class QuranDataService {
 
 	async clearCache(): Promise<void> {
 		try {
-			const db = await getDB();
-			await db.delete(CACHE_STORE, CACHE_KEY);
-			this.data = null;
+			const db = await openDatabase();
+			return new Promise((resolve, reject) => {
+				const tx = db.transaction(STORE_NAME, 'readwrite');
+				const store = tx.objectStore(STORE_NAME);
+				const request = store.delete(CACHE_KEY);
+
+				request.onerror = () => reject(request.error);
+				request.onsuccess = () => {
+					this.data = null;
+					resolve();
+				};
+			});
 		} catch (error) {
 			console.error('Error clearing cache:', error);
 		}
