@@ -137,6 +137,10 @@ export const MIN_SUFFIX_TOKENS = 3; // Stop trimming if suffix has fewer than th
 // Timing configuration (ms)
 export const ERROR_DISMISS_DELAY = 3000;
 
+// WhatsApp invite links (leave empty to hide buttons)
+export const WHATSAPP_FEEDBACK_INVITE = "https://chat.whatsapp.com/BdjpqUKFfXtFPejfKSNxHj?mode=gi_c" as const;
+export const WHATSAPP_SUPPORT_INVITE = "https://chat.whatsapp.com/IMzvTMvL1jYEiRNOLk0UFj?mode=gi_c" as const;
+
 // Standalone tajweed/juz mark codepoints that appear as whitespace-delimited tokens in uthmani
 export const TAJWEED_MARKS = new Set([
   "\u06D6", // ۖ small high sad

@@ -1,7 +1,7 @@
 {
-	"name": "Quran Teleprompter",
-	"short_name": "Quran Reader",
-	"description": "Read Quran with speech recognition highlighting - words light up as you recite",
+	"name": "Qiyam Mushaf",
+	"short_name": "Qiyam",
+	"description": "Read the Mushaf with speech-recognition highlighting during your qiyam prayers. A simple, distraction-free Quran reader.",
 	"start_url": "/",
 	"display": "standalone",
 	"background_color": "#111827",
