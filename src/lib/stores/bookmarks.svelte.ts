@@ -36,17 +36,9 @@ class BookmarkStore {
 		this.continuePosition = this.service.getContinuePosition();
 	}
 
-	getContinuePosition(): ContinuePosition | null {
-		return this.continuePosition;
-	}
-
 	async setContinueEnabled(enabled: boolean): Promise<void> {
 		await this.service.setContinueEnabled(enabled);
 		this.continueEnabled = enabled;
-	}
-
-	getContinueEnabled(): boolean {
-		return this.continueEnabled;
 	}
 }
 
