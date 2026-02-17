@@ -40,7 +40,7 @@
 		data.allWords[Math.min(appState.nextWordIndex, data.allWords.length - 1)]
 	);
 
-	const currentVerseKey: GlobalVerseKey = $derived(
+	const currentVerseKey = $derived(
 		currentWord?.verseKey ?? toGlobalKey(1, 1)
 	);
 
@@ -87,10 +87,6 @@
 		setCursorToVerse(surahNum, verseNum);
 	}
 
-	function toggleRecognition(): void {
-		speechStore.toggle();
-	}
-
 	function handleToggleBookmark(): void {
 		bookmarkStore.toggleBookmark(currentVerseKey);
 	}
@@ -98,10 +94,6 @@
 	function openBookmarkList(): void {
 		appState.isSettingsModalOpen = false;
 		isBookmarkModalOpen = true;
-	}
-
-	function handleRemoveBookmark(verseKey: GlobalVerseKey): void {
-		bookmarkStore.toggleBookmark(verseKey);
 	}
 
 	function handleToggleVerseBookmark(verseKey: GlobalVerseKey): void {
@@ -122,8 +114,8 @@
 		await bookmarkStore.init();
 		
 		// Only restore if continue is enabled
-		if (bookmarkStore.getContinueEnabled()) {
-			const continuePos = bookmarkStore.getContinuePosition();
+		if (bookmarkStore.continueEnabled) {
+			const continuePos = bookmarkStore.continuePosition;
 			if (continuePos) {
 				const pos = fromGlobalKey(continuePos.verseKey);
 				const targetVerse = data.surahs[pos.surah - 1]?.verses[pos.verse - 1];
@@ -246,10 +238,8 @@
 	});
 
 	$effect(() => {
-		const key = currentVerseKey;
-		if (key) {
-			updateContinuePosition();
-		}
+		currentVerseKey;
+		updateContinuePosition();
 	});
 </script>
 
@@ -292,7 +282,7 @@
 	{/if}
 
 	<div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-		<RecordButton isListening={speechStore.isListening} onclick={toggleRecognition} />
+		<RecordButton isListening={speechStore.isListening} onclick={() => speechStore.toggle()} />
 	</div>
 
 	<div class="flex-1 min-h-0 h-full">
@@ -324,7 +314,7 @@
 			onOpenInstallGuide={() => (appState.isInstallGuideOpen = true)}
 			onOpenBookmarks={openBookmarkList}
 			onToggleContinue={handleToggleContinue}
-			continueEnabled={bookmarkStore.getContinueEnabled()}
+			continueEnabled={bookmarkStore.continueEnabled}
 			bookmarkCount={bookmarkStore.bookmarks.length}
 		/>
 	{/if}
@@ -343,7 +333,7 @@
 			surahs={data.surahs}
 			onClose={() => (isBookmarkModalOpen = false)}
 			onNavigate={navigateToVerse}
-			onRemove={handleRemoveBookmark}
+			onRemove={handleToggleVerseBookmark}
 		/>
 	{/if}
 </div>

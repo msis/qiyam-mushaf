@@ -27,43 +27,39 @@
 		bookmarkCount = 0
 	}: Props = $props();
 
-	function handleBackdropClick(e: MouseEvent) {
+	function handleBackdropClick(e: MouseEvent): void {
 		if (e.target === e.currentTarget) {
 			onClose();
 		}
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
+	function handleKeydown(e: KeyboardEvent): void {
 		if (e.key === 'Escape') {
 			onClose();
 		}
 	}
 
-	function handleAcknowledgments() {
+	function handleAcknowledgments(): void {
 		onClose();
 		onOpenAcknowledgments();
 	}
 
-	function handleBookmarks() {
+	function handleBookmarks(): void {
 		onClose();
 		onOpenBookmarks();
 	}
 
-	function handleOpenFeedback() {
+	function handleOpenFeedback(): void {
 		onClose();
-		if (WHATSAPP_FEEDBACK_INVITE) {
-			window.open(WHATSAPP_FEEDBACK_INVITE, '_blank', 'noopener,noreferrer');
-		}
+		window.open(WHATSAPP_FEEDBACK_INVITE, '_blank', 'noopener,noreferrer');
 	}
 
-	function handleOpenSupport() {
+	function handleOpenSupport(): void {
 		onClose();
-		if (WHATSAPP_SUPPORT_INVITE) {
-			window.open(WHATSAPP_SUPPORT_INVITE, '_blank', 'noopener,noreferrer');
-		}
+		window.open(WHATSAPP_SUPPORT_INVITE, '_blank', 'noopener,noreferrer');
 	}
 
-	function handleToggle(e?: MouseEvent) {
+	function handleToggle(e?: MouseEvent): void {
 		if (e && e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
 			onToggleContinue(e.target.checked);
 		} else {
@@ -71,7 +67,7 @@
 		}
 	}
 
-	function handleToggleKeydown(e: KeyboardEvent) {
+	function handleToggleKeydown(e: KeyboardEvent): void {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
 			handleToggle();
@@ -98,7 +94,6 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
-	onkeydown={handleKeydown}
 	role="dialog"
 	aria-modal="true"
 	aria-labelledby="modal-title"

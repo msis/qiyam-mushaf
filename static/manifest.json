@@ -1,6 +1,6 @@
 {
   "name": "Qiyam Mushaf",
-  "short_name": "Qiyam",
+  "short_name": "Qiyam Mushaf",
   "description": "Read the Mushaf with speech-recognition highlighting during your qiyam prayers. A simple, distraction-free Quran reader.",
   "start_url": "/",
   "display": "standalone",
