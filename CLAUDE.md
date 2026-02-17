@@ -26,7 +26,7 @@ After completing the code, ask the user if they want a playground link. Only cal
 
 ## Project Overview
 
-Quran Teleprompter - A SvelteKit 5 web app that displays Quran text and uses speech recognition to highlight words as the user reads aloud. Auto-advances verses when all words are matched.
+Qiyam Mushaf - A SvelteKit 5 web app that displays Quran text and uses speech recognition to highlight words as the user reads aloud. Auto-advances verses when all words are matched.
 
 ## Commands
 
@@ -98,6 +98,6 @@ All types in `src/lib/types/index.ts`:
 - `SURAH_NAMES` - Array of all 114 surahs with Arabic/English names and verse counts
 - `LANGUAGE_CODE` - Arabic locale for speech recognition (`ar-SA`)
 - `SIMILARITY_THRESHOLD` - Levenshtein match threshold (0.7)
-- `DB_NAME`, `DB_VERSION`, `STORE_NAME`, `CACHE_KEY` - IndexedDB configuration
+- `DB_NAME`, `DB_VERSION`, `CACHE_KEY` - IndexedDB configuration
 - `TAJWEED_MARKS` - Set of 9 standalone tajweed/juz mark codepoints in uthmani text
 - `ERROR_DISMISS_DELAY` - UI timing constant (ms)
