@@ -17,7 +17,7 @@
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
 	import { getSettingsStore } from '$lib/stores/settings.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	let { data } = $props();
 
@@ -53,22 +53,11 @@
 
 	// --- Reactive effects ---
 
-	// Forward-only auto-scroll: prevents jitter from interim speech oscillation.
-	// User navigation resets both variables, allowing any direction.
-	let scrollFloor = 0;
-	let lastScrolledKey: GlobalVerseKey | null = null;
-
+	// Auto-scroll triggered only by nextWordIndex changes.
+	// currentVerseKey is untracked (it's derived from nextWordIndex anyway).
 	$effect(() => {
-		const key = currentVerseKey;
-		const idx = appState.nextWordIndex;
-
-		if (idx < scrollFloor) return;
-
-		if (key !== lastScrolledKey) {
-			scrollFloor = idx;
-			lastScrolledKey = key;
-		}
-
+		appState.nextWordIndex;
+		const key = untrack(() => currentVerseKey);
 		scrollToVerse(key);
 	});
 
@@ -84,8 +73,6 @@
 	function setCursorToVerse(surahNum: number, verseNum: number): void {
 		const targetVerse = data.surahs[surahNum - 1]?.verses[verseNum - 1];
 		const idx = targetVerse?.words[0]?.globalIndex ?? 0;
-		scrollFloor = idx;
-		lastScrolledKey = null;
 		appState.finalCursor = idx;
 		appState.nextWordIndex = idx;
 	}
@@ -137,8 +124,6 @@
 				const targetVerse = data.surahs[pos.surah - 1]?.verses[pos.verse - 1];
 				if (targetVerse) {
 					const idx = targetVerse.words[0]?.globalIndex ?? 0;
-					scrollFloor = idx;
-					lastScrolledKey = null;
 					appState.finalCursor = idx;
 					appState.nextWordIndex = idx;
 				}
