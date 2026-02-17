@@ -24,10 +24,13 @@
 	const speechStore = getSpeechStore();
 	const bookmarkStore = getBookmarkStore();
 	const settingsStore = getSettingsStore();
+	const verseFontSizeCss = $derived(`${settingsStore.verseFontSize}px`);
 	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
 	let isBookmarkModalOpen = $state(false);
+	let updateAvailable = $state(false);
+	let isApplyingUpdate = $state(false);
 
 	// --- Derived position from nextWordIndex (O(1) field read) ---
 
@@ -162,8 +165,95 @@
 		}, 500);
 	}
 
+	async function applyUpdateAndReload(): Promise<void> {
+		if (isApplyingUpdate) return;
+		isApplyingUpdate = true;
+
+		let updateTimeout: ReturnType<typeof setTimeout> | null = null;
+
+		const clearUpdateTimeout = () => {
+			if (updateTimeout !== null) {
+				clearTimeout(updateTimeout);
+				updateTimeout = null;
+			}
+		};
+
+		try {
+			const registration = await navigator.serviceWorker.getRegistration();
+			const waiting = registration?.waiting;
+
+			if (waiting) {
+				updateTimeout = setTimeout(() => {
+					console.warn('Service worker update did not complete in time; resetting update state.');
+					isApplyingUpdate = false;
+				}, 10000);
+
+				waiting.postMessage({ type: 'SKIP_WAITING' });
+				return;
+			}
+
+			clearUpdateTimeout();
+			window.location.reload();
+		} catch {
+			clearUpdateTimeout();
+			isApplyingUpdate = false;
+			window.location.reload();
+		}
+	}
+
 	onMount(() => {
 		restorePosition();
+
+		if (!('serviceWorker' in navigator)) return;
+
+		let hasReloaded = false;
+		const onControllerChange = () => {
+			if (hasReloaded) return;
+			hasReloaded = true;
+			window.location.reload();
+		};
+
+		navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+		let registration: ServiceWorkerRegistration | undefined;
+		let onUpdateFound: (() => void) | undefined;
+
+		void navigator.serviceWorker.getRegistration().then((reg) => {
+			if (!reg) return;
+			registration = reg;
+
+			const syncUpdateFlag = () => {
+				if (reg.waiting && navigator.serviceWorker.controller) {
+					updateAvailable = true;
+				}
+			};
+
+			syncUpdateFlag();
+
+			onUpdateFound = () => {
+				const installing = reg.installing;
+				if (!installing) return;
+
+				installing.addEventListener(
+					'statechange',
+					() => {
+						if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+							updateAvailable = true;
+						}
+					},
+					{ once: true }
+				);
+			};
+
+			reg.addEventListener('updatefound', onUpdateFound);
+		});
+
+		return () => {
+			navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+			if (registration && onUpdateFound) {
+				registration.removeEventListener('updatefound', onUpdateFound);
+			}
+		};
 	});
 
 	$effect(() => {
@@ -176,7 +266,7 @@
 
 <div
 	class="h-screen bg-gray-900 flex flex-col"
-	style="--verse-font-size: {settingsStore.verseFontSize}px"
+	style:--verse-font-size={verseFontSizeCss}
 >
 	<div class="fixed top-4 right-4 z-40">
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
@@ -194,6 +284,19 @@
 			onToggle={handleToggleBookmark}
 		/>
 	</div>
+
+	{#if updateAvailable}
+		<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50">
+			<button
+				type="button"
+				onclick={applyUpdateAndReload}
+				class="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg"
+				disabled={isApplyingUpdate}
+			>
+				{isApplyingUpdate ? 'Updating…' : 'New version available — Reload'}
+			</button>
+		</div>
+	{/if}
 
 	{#if speechStore.errorMessage}
 		<ErrorToast message={speechStore.errorMessage} />
