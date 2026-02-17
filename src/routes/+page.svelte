@@ -169,17 +169,34 @@
 		if (isApplyingUpdate) return;
 		isApplyingUpdate = true;
 
+		let updateTimeout: ReturnType<typeof setTimeout> | null = null;
+
+		const clearUpdateTimeout = () => {
+			if (updateTimeout !== null) {
+				clearTimeout(updateTimeout);
+				updateTimeout = null;
+			}
+		};
+
 		try {
 			const registration = await navigator.serviceWorker.getRegistration();
 			const waiting = registration?.waiting;
 
 			if (waiting) {
+				updateTimeout = setTimeout(() => {
+					console.warn('Service worker update did not complete in time; resetting update state.');
+					isApplyingUpdate = false;
+				}, 10000);
+
 				waiting.postMessage({ type: 'SKIP_WAITING' });
 				return;
 			}
 
+			clearUpdateTimeout();
 			window.location.reload();
 		} catch {
+			clearUpdateTimeout();
+			isApplyingUpdate = false;
 			window.location.reload();
 		}
 	}
