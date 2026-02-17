@@ -1,10 +1,10 @@
 <script module>
-	import { defineMeta } from '@storybook/addon-svelte-csf';
-	import AppButton from '$lib/components/AppButton.svelte';
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import AppButton from "$lib/components/AppButton.svelte";
 
 	const { Story } = defineMeta({
-		title: 'Components/AppButton',
-		component: AppButton
+		title: "Components/AppButton",
+		component: AppButton,
 	});
 </script>
 
