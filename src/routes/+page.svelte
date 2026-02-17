@@ -9,6 +9,8 @@
 	import SettingsButton from '$lib/components/SettingsButton.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import AcknowledgmentsModal from '$lib/components/AcknowledgmentsModal.svelte';
+	import InstallGuideModal from '$lib/components/InstallGuideModal.svelte';
+	import { getPwaInstallStore } from '$lib/stores/pwaInstall.svelte';
 	import PositionBadge from '$lib/components/PositionBadge.svelte';
 	import ErrorToast from '$lib/components/ErrorToast.svelte';
 	import RecordButton from '$lib/components/RecordButton.svelte';
@@ -24,6 +26,7 @@
 	const speechStore = getSpeechStore();
 	const bookmarkStore = getBookmarkStore();
 	const settingsStore = getSettingsStore();
+	getPwaInstallStore();
 	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
@@ -229,6 +232,7 @@
 		<SettingsModal
 			onClose={() => (appState.isSettingsModalOpen = false)}
 			onOpenAcknowledgments={() => (appState.isAcknowledgmentsOpen = true)}
+			onOpenInstallGuide={() => (appState.isInstallGuideOpen = true)}
 			onOpenBookmarks={openBookmarkList}
 			onToggleContinue={handleToggleContinue}
 			continueEnabled={bookmarkStore.getContinueEnabled()}
@@ -238,6 +242,10 @@
 
 	{#if appState.isAcknowledgmentsOpen}
 		<AcknowledgmentsModal onClose={() => (appState.isAcknowledgmentsOpen = false)} />
+	{/if}
+
+	{#if appState.isInstallGuideOpen}
+		<InstallGuideModal onClose={() => (appState.isInstallGuideOpen = false)} />
 	{/if}
 
 	{#if isBookmarkModalOpen}
