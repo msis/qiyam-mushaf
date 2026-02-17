@@ -13,5 +13,21 @@
   args={{
     onClose: () => console.log('close'),
     onOpenAcknowledgments: () => console.log('open acknowledgments'),
+    onOpenBookmarks: () => console.log('open bookmarks'),
+    onToggleContinue: () => console.log('continue toggled'),
+    continueEnabled: true,
+    bookmarkCount: 3,
+  }}
+/>
+
+<Story
+  name="ContinueDisabled"
+  args={{
+    onClose: () => console.log('close'),
+    onOpenAcknowledgments: () => console.log('open acknowledgments'),
+    onOpenBookmarks: () => console.log('open bookmarks'),
+    onToggleContinue: () => console.log('continue toggled'),
+    continueEnabled: false,
+    bookmarkCount: 0,
   }}
 />
