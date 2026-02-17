@@ -17,7 +17,6 @@
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
 	import type { GlobalVerseKey } from '$lib/types';
-	import { getSettingsStore } from '$lib/stores/settings.svelte';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
