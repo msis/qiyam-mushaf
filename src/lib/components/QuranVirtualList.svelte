@@ -81,6 +81,12 @@
 
 		if (Math.abs(distance) < 1) return;
 
+		// Scrolling up — library's smooth scroll handles layout-shift compensation
+		if (distance < 0) {
+			vlist.scrollToIndex(index, { align: 'nearest', smooth: true });
+			return;
+		}
+
 		const startTime = performance.now();
 
 		function step(now: number) {
