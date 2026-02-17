@@ -24,6 +24,7 @@
 	const speechStore = getSpeechStore();
 	const bookmarkStore = getBookmarkStore();
 	const settingsStore = getSettingsStore();
+	const verseFontSizeCss = $derived(`${settingsStore.verseFontSize}px`);
 	createSpeechMatcher(data.allWords, speechStore);
 	let virtualListRef = $state<QuranVirtualList | undefined>();
 
@@ -176,7 +177,7 @@
 
 <div
 	class="h-screen bg-gray-900 flex flex-col"
-	style="--verse-font-size: {settingsStore.verseFontSize}px"
+	style:--verse-font-size={verseFontSizeCss}
 >
 	<div class="fixed top-4 right-4 z-40">
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
