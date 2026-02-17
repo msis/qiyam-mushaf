@@ -83,6 +83,7 @@
 <VList
 	bind:this={vlist}
 	data={items}
+	bufferSize={400}
 	style="height: 100%;"
 	getKey={(item) => item.index}
 >
