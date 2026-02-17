@@ -2,64 +2,64 @@
 	import AppButton from '$lib/components/AppButton.svelte';
 	import FontSizeControl from '$lib/components/FontSizeControl.svelte';
 	import { getSettingsStore } from '$lib/stores/settings.svelte';
+	import { getPwaInstallStore } from '$lib/stores/pwaInstall.svelte';
 	import { WHATSAPP_FEEDBACK_INVITE, WHATSAPP_SUPPORT_INVITE } from '$lib/utils/constants';
 	interface Props {
 		onClose: () => void;
 		onOpenAcknowledgments: () => void;
 		onOpenBookmarks: () => void;
+		onOpenInstallGuide: () => void;
 		continueEnabled?: boolean;
 		onToggleContinue: (enabled: boolean) => void;
 		bookmarkCount?: number;
 	}
 
 	const settingsStore = getSettingsStore();
+	const pwaStore = getPwaInstallStore();
 
 	let {
 		onClose,
 		onOpenAcknowledgments,
 		onOpenBookmarks,
+		onOpenInstallGuide,
 		continueEnabled = true,
 		onToggleContinue,
 		bookmarkCount = 0
 	}: Props = $props();
 
-	function handleBackdropClick(e: MouseEvent) {
+	function handleBackdropClick(e: MouseEvent): void {
 		if (e.target === e.currentTarget) {
 			onClose();
 		}
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
+	function handleKeydown(e: KeyboardEvent): void {
 		if (e.key === 'Escape') {
 			onClose();
 		}
 	}
 
-	function handleAcknowledgments() {
+	function handleAcknowledgments(): void {
 		onClose();
 		onOpenAcknowledgments();
 	}
 
-	function handleBookmarks() {
+	function handleBookmarks(): void {
 		onClose();
 		onOpenBookmarks();
 	}
 
-	function handleOpenFeedback() {
+	function handleOpenFeedback(): void {
 		onClose();
-		if (WHATSAPP_FEEDBACK_INVITE) {
-			window.open(WHATSAPP_FEEDBACK_INVITE, '_blank', 'noopener,noreferrer');
-		}
+		window.open(WHATSAPP_FEEDBACK_INVITE, '_blank', 'noopener,noreferrer');
 	}
 
-	function handleOpenSupport() {
+	function handleOpenSupport(): void {
 		onClose();
-		if (WHATSAPP_SUPPORT_INVITE) {
-			window.open(WHATSAPP_SUPPORT_INVITE, '_blank', 'noopener,noreferrer');
-		}
+		window.open(WHATSAPP_SUPPORT_INVITE, '_blank', 'noopener,noreferrer');
 	}
 
-	function handleToggle(e?: MouseEvent) {
+	function handleToggle(e?: MouseEvent): void {
 		if (e && e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
 			onToggleContinue(e.target.checked);
 		} else {
@@ -67,11 +67,21 @@
 		}
 	}
 
-	function handleToggleKeydown(e: KeyboardEvent) {
+	function handleToggleKeydown(e: KeyboardEvent): void {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
 			handleToggle();
 		}
+	}
+
+	function handleInstall() {
+		onClose();
+		pwaStore.promptInstall();
+	}
+
+	function handleInstallGuide() {
+		onClose();
+		onOpenInstallGuide();
 	}
 
 	function handleFontSizeChange(nextSize: number): void {
@@ -84,7 +94,6 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
 	onclick={handleBackdropClick}
-	onkeydown={handleKeydown}
 	role="dialog"
 	aria-modal="true"
 	aria-labelledby="modal-title"
@@ -157,6 +166,33 @@
 					</span>
 				{/if}
 			</AppButton>
+			{#if pwaStore.isInstalled}
+				<div class="w-full bg-gray-700 text-gray-400 font-medium py-3 px-4 rounded-lg flex items-center">
+					<svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+					</svg>
+					App Installed
+				</div>
+			{:else}
+				<div class="flex gap-2">
+					<AppButton onclick={pwaStore.canInstall ? handleInstall : handleInstallGuide} ariaLabel="Install app" class="flex-1">
+						{#snippet icon()}
+							<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+							</svg>
+						{/snippet}
+						Install App
+					</AppButton>
+					<button
+						type="button"
+						onclick={handleInstallGuide}
+						class="w-12 bg-gray-700 hover:bg-gray-600 text-amber-100 font-bold rounded-lg transition-colors flex items-center justify-center"
+						aria-label="Installation instructions"
+					>
+						i
+					</button>
+				</div>
+			{/if}
 			{#if WHATSAPP_FEEDBACK_INVITE}
 				<AppButton onclick={handleOpenFeedback} ariaLabel="Send feedback on WhatsApp">
 					{#snippet icon()}
