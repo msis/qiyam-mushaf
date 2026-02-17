@@ -29,6 +29,22 @@
 		return 1 - (1 - t) ** 3;
 	}
 
+	/**
+	 * Estimate how far through the item the current word is (0–1).
+	 * Returns 0.5 (center) when nextWordIndex is outside this verse's range,
+	 * which means the scroll is a navigation jump rather than reading progress.
+	 */
+	function wordFraction(index: number): number {
+		const item = items[index];
+		if (item?.type !== 'verse') return 0.5;
+		const wordsInVerse = item.verse.words.length;
+		if (wordsInVerse === 0) return 0.5;
+		const startGlobal = item.verse.words[0]?.globalIndex ?? 0;
+		const localOffset = nextWordIndex - startGlobal;
+		if (localOffset < 0 || localOffset >= wordsInVerse) return 0.5;
+		return localOffset / wordsInVerse;
+	}
+
 	export function scrollToIndex(index: number): void {
 		if (!vlist) return;
 
@@ -40,19 +56,20 @@
 
 		const currentIndex = vlist.findItemIndex(vlist.getScrollOffset());
 
-		// Far jump — instant
+		// Far jump — library handles measurement-retry internally
 		if (Math.abs(index - currentIndex) > SMOOTH_THRESHOLD) {
 			vlist.scrollToIndex(index, { align: 'center' });
 			return;
 		}
 
-		// Nearby — custom smooth scroll
+		// Nearby — custom smooth scroll with word-aware centering
 		const targetOffset = vlist.getItemOffset(index);
 		const itemSize = vlist.getItemSize(index);
 		const viewportSize = vlist.getViewportSize();
 		const maxScroll = vlist.getScrollSize() - viewportSize;
 
-		const idealScroll = targetOffset - (viewportSize - itemSize) / 2;
+		const pointToCenter = targetOffset + wordFraction(index) * itemSize;
+		const idealScroll = pointToCenter - viewportSize / 2;
 		const targetScroll = Math.max(0, Math.min(idealScroll, maxScroll));
 		const startScroll = vlist.getScrollOffset();
 		const distance = targetScroll - startScroll;
