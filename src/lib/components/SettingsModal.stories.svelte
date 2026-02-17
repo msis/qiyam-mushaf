@@ -13,5 +13,9 @@
   args={{
     onClose: () => console.log('close'),
     onOpenAcknowledgments: () => console.log('open acknowledgments'),
+    onOpenBookmarks: () => console.log('open bookmarks'),
+    onToggleContinue: (enabled) => console.log('toggle continue', enabled),
+    continueEnabled: true,
+    bookmarkCount: 3,
   }}
 />
