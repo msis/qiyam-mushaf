@@ -3,6 +3,7 @@
 	import { getSpeechStore } from '$lib/stores/speech.svelte';
 	import { createSpeechMatcher } from '$lib/stores/speechMatcher.svelte';
 	import { getBookmarkStore } from '$lib/stores/bookmarks.svelte';
+	import { getSettingsStore } from '$lib/stores/settings.svelte';
 	import { toGlobalKey, fromGlobalKey } from '$lib/utils/globalAddressing';
 	import QuranVirtualList from '$lib/components/QuranVirtualList.svelte';
 	import NavigationModal from '$lib/components/NavigationModal.svelte';
