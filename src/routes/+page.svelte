@@ -62,11 +62,13 @@
 		const key = currentVerseKey;
 		const idx = appState.nextWordIndex;
 
-		if (key === lastScrolledKey) return;
 		if (idx < scrollFloor) return;
 
-		scrollFloor = idx;
-		lastScrolledKey = key;
+		if (key !== lastScrolledKey) {
+			scrollFloor = idx;
+			lastScrolledKey = key;
+		}
+
 		scrollToVerse(key);
 	});
 

@@ -45,6 +45,17 @@
 		return localOffset / wordsInVerse;
 	}
 
+	/** Compute the ideal scroll offset to center the word-aware point of an item. */
+	function computeScrollTarget(index: number): number | null {
+		if (!vlist) return null;
+		const targetOffset = vlist.getItemOffset(index);
+		const itemSize = vlist.getItemSize(index);
+		const viewportSize = vlist.getViewportSize();
+		const maxScroll = vlist.getScrollSize() - viewportSize;
+		const pointToCenter = targetOffset + wordFraction(index) * itemSize;
+		return Math.max(0, Math.min(pointToCenter - viewportSize / 2, maxScroll));
+	}
+
 	export function scrollToIndex(index: number): void {
 		if (!vlist) return;
 
@@ -62,15 +73,9 @@
 			return;
 		}
 
-		// Nearby — custom smooth scroll with word-aware centering
-		const targetOffset = vlist.getItemOffset(index);
-		const itemSize = vlist.getItemSize(index);
-		const viewportSize = vlist.getViewportSize();
-		const maxScroll = vlist.getScrollSize() - viewportSize;
-
-		const pointToCenter = targetOffset + wordFraction(index) * itemSize;
-		const idealScroll = pointToCenter - viewportSize / 2;
-		const targetScroll = Math.max(0, Math.min(idealScroll, maxScroll));
+		// Nearby — smooth scroll with word-aware centering
+		const targetScroll = computeScrollTarget(index);
+		if (targetScroll === null) return;
 		const startScroll = vlist.getScrollOffset();
 		const distance = targetScroll - startScroll;
 
