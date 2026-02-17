@@ -217,11 +217,15 @@
 				const installing = reg.installing;
 				if (!installing) return;
 
-				installing.addEventListener('statechange', () => {
-					if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-						updateAvailable = true;
-					}
-				});
+				installing.addEventListener(
+					'statechange',
+					() => {
+						if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+							updateAvailable = true;
+						}
+					},
+					{ once: true }
+				);
 			};
 
 			reg.addEventListener('updatefound', onUpdateFound);
