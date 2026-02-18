@@ -18,6 +18,7 @@
 	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
+	import { t } from '$lib/i18n';
 	import type { GlobalVerseKey } from '$lib/types';
 	import { onMount, untrack } from 'svelte';
 
@@ -247,11 +248,11 @@
 	class="h-screen bg-gray-900 flex flex-col"
 	style:--verse-font-size="{settingsStore.verseFontSize}px"
 >
-	<div class="fixed top-4 right-4 z-40">
+	<div class="fixed top-4 end-4 z-40">
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
 	</div>
 
-	<div class="fixed top-4 left-4 z-40 flex items-center gap-2">
+	<div class="fixed top-4 start-4 z-40 flex items-center gap-2">
 		<PositionBadge
 			surahName={currentSurah?.name ?? ''}
 			surahNumber={currentPosition.surah}
@@ -272,7 +273,7 @@
 				class="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg"
 				disabled={isApplyingUpdate}
 			>
-				{isApplyingUpdate ? 'Updating…' : 'New version available — Reload'}
+				{isApplyingUpdate ? t('pwa.updating') : t('pwa.newVersionAvailable')}
 			</button>
 		</div>
 	{/if}

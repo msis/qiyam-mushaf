@@ -4,6 +4,7 @@ import type {
 	RecognitionStatus
 } from '$lib/types';
 import { LANGUAGE_CODE } from '$lib/utils/constants';
+import { translateSpeechError } from '$lib/i18n';
 
 // Type definitions for Web Speech API
 // Using 'any' for the recognition instance to avoid conflicts with lib.dom.d.ts
@@ -96,29 +97,7 @@ export class SpeechRecognitionService {
 
 		this.recognition.onerror = (event: SpeechRecognitionErrorEventType) => {
 			this.isListening = false;
-
-			let errorMessage = 'Speech recognition error';
-
-			switch (event.error) {
-				case 'no-speech':
-					errorMessage = 'No speech detected';
-					break;
-				case 'audio-capture':
-					errorMessage = 'No microphone detected';
-					break;
-				case 'not-allowed':
-					errorMessage = 'Microphone access denied';
-					break;
-				case 'network':
-					errorMessage = 'Network error';
-					break;
-				case 'aborted':
-					errorMessage = 'Speech recognition aborted';
-					break;
-				default:
-					errorMessage = event.error || 'Unknown error';
-			}
-
+			const errorMessage = translateSpeechError(event.error);
 			const error = new Error(errorMessage);
 			this.callbacks.onError?.(error);
 		};
@@ -153,7 +132,7 @@ export class SpeechRecognitionService {
 		}
 
 		if (!this.recognition) {
-			this.callbacks.onError?.(new Error('Speech recognition not available'));
+			this.callbacks.onError?.(new Error(translateSpeechError('not-available')));
 			return;
 		}
 

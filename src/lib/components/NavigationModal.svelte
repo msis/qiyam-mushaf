@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Surah } from '$lib/types';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		onClose: () => void;
@@ -52,11 +53,10 @@
 	aria-modal="true"
 	aria-labelledby="modal-title"
 	tabindex="-1"
-	dir="ltr"
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
 		<div class="flex justify-between items-center mb-6">
-			<h2 id="modal-title" class="text-xl font-bold text-amber-100">Navigate to Verse</h2>
+			<h2 id="modal-title" class="text-xl font-bold text-amber-100">{t('nav.navigateToVerse')}</h2>
 			<button
 				onclick={onClose}
 				class="text-gray-400 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700"
@@ -68,7 +68,7 @@
 		<div class="space-y-5">
 			<div>
 				<label for="surah-select" class="block text-sm font-medium text-amber-200 mb-2">
-					Surah
+					{t('nav.surah')}
 				</label>
 				<select
 					id="surah-select"
@@ -86,7 +86,7 @@
 
 			<div>
 				<label for="verse-select" class="block text-sm font-medium text-amber-200 mb-2">
-					Verse
+					{t('nav.verse')}
 				</label>
 				<select
 					id="verse-select"
@@ -98,7 +98,7 @@
 					{#if selectedSurahData}
 						{#each selectedSurahData.verses as verse (verse.number)}
 							<option value={verse.number}>
-								Verse {verse.number}
+								{t('nav.verseNumber', { number: verse.number })}
 							</option>
 						{/each}
 					{/if}
@@ -109,7 +109,7 @@
 				onclick={handleGo}
 				class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-lg transition-colors mt-4"
 			>
-				Go to {localSurah}:{localVerse}
+				{t('nav.goTo', { surah: localSurah, verse: localVerse })}
 			</button>
 		</div>
 	</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
+	import { t } from '$lib/i18n';
 </script>
 
 <div class="h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -11,11 +12,11 @@
 
 		<h1 class="text-2xl font-semibold text-amber-100 mb-4">
 			{#if page.status === 404}
-				Page Not Found
+				{t('error.pageNotFound')}
 			{:else if page.status === 500}
-				Server Error
+				{t('error.serverError')}
 			{:else}
-				Something Went Wrong
+				{t('error.somethingWentWrong')}
 			{/if}
 		</h1>
 
@@ -23,9 +24,9 @@
 			{#if page.error?.message}
 				{page.error.message}
 			{:else if page.status === 404}
-				The page you are looking for does not exist.
+				{t('error.pageNotFoundMessage')}
 			{:else}
-				An unexpected error occurred.
+				{t('error.unexpectedError')}
 			{/if}
 		</p>
 
@@ -33,7 +34,7 @@
 			href="{base}/"
 			class="inline-block bg-amber-600 hover:bg-amber-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
 		>
-			Return Home
+			{t('error.returnHome')}
 		</a>
 	</div>
 </div>
