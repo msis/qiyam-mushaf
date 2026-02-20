@@ -13,6 +13,7 @@ class AppState {
 	isSettingsModalOpen = $state(false);
 	isAcknowledgmentsOpen = $state(false);
 	isInstallGuideOpen = $state(false);
+	isContributeOpen = $state(false);
 }
 
 export const appState = new AppState();

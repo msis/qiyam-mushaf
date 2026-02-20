@@ -14,6 +14,7 @@ export const en: TranslationStrings = {
 	'settings.feedback': 'Feedback (WhatsApp)',
 	'settings.support': 'Support (WhatsApp)',
 	'settings.acknowledgments': 'Acknowledgments',
+	'settings.contribute': 'Contribute',
 	'settings.language': 'Language',
 
 	'nav.openNavigation': 'Open navigation',
@@ -53,6 +54,13 @@ export const en: TranslationStrings = {
 	'acknowledgments.teleprompter': 'This is a cool project that inspired some of the technical solutions for this project.',
 	'acknowledgments.quranMajeed': 'The bookmarking and saving of last reading position was inspired by the QuranMajeed app.',
 	'acknowledgments.speechApi': 'Speech recognition powered by the Web Speech API.',
+
+	'contribute.title': 'Contribute',
+	'contribute.intro': 'Qiyam Mushaf is open source! You can help improve it on GitHub.',
+	'contribute.starRepo': 'Star the repository to show your support.',
+	'contribute.reportIssues': 'Report bugs or suggest features by opening an issue.',
+	'contribute.submitPRs': 'Submit pull requests to contribute code improvements.',
+	'contribute.thankYou': 'JazakAllahu Khayran for your contributions!',
 
 	'installGuide.title': 'Install App',
 	'installGuide.intro': 'Installing the app gives you a native-app experience, offline access and a home screen icon.',
