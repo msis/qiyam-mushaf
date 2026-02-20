@@ -9,6 +9,7 @@
 	interface Props {
 		onClose: () => void;
 		onOpenAcknowledgments: () => void;
+		onOpenContribute: () => void;
 		onOpenBookmarks: () => void;
 		onOpenInstallGuide: () => void;
 		continueEnabled?: boolean;
@@ -22,6 +23,7 @@
 	let {
 		onClose,
 		onOpenAcknowledgments,
+		onOpenContribute,
 		onOpenBookmarks,
 		onOpenInstallGuide,
 		continueEnabled = true,
@@ -44,6 +46,11 @@
 	function handleAcknowledgments(): void {
 		onClose();
 		onOpenAcknowledgments();
+	}
+
+	function handleContribute(): void {
+		onClose();
+		onOpenContribute();
 	}
 
 	function handleBookmarks(): void {
@@ -242,6 +249,19 @@
 					{t('settings.support')}
 				</AppButton>
 			{/if}
+			<AppButton onclick={handleContribute} ariaLabel={t('settings.contribute')}>
+				{#snippet icon()}
+					<svg class="w-5 h-5 me-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+						/>
+					</svg>
+				{/snippet}
+				{t('settings.contribute')}
+			</AppButton>
 			<AppButton onclick={handleAcknowledgments} ariaLabel={t('settings.acknowledgments')}>
 				{#snippet icon()}
 					<svg class="w-5 h-5 me-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -22,6 +22,7 @@ export interface TranslationStrings {
 	'settings.feedback': string;
 	'settings.support': string;
 	'settings.acknowledgments': string;
+	'settings.contribute': string;
 	'settings.language': string;
 
 	// Navigation
@@ -68,6 +69,14 @@ export interface TranslationStrings {
 	'acknowledgments.teleprompter': string;
 	'acknowledgments.quranMajeed': string;
 	'acknowledgments.speechApi': string;
+
+	// Contribute
+	'contribute.title': string;
+	'contribute.intro': string;
+	'contribute.starRepo': string;
+	'contribute.reportIssues': string;
+	'contribute.submitPRs': string;
+	'contribute.thankYou': string;
 
 	// Install guide
 	'installGuide.title': string;

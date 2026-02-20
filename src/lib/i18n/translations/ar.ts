@@ -14,6 +14,7 @@ export const ar: TranslationStrings = {
 	'settings.feedback': 'ملاحظات (WhatsApp)',
 	'settings.support': 'الدعم (WhatsApp)',
 	'settings.acknowledgments': 'شكر وتقدير',
+	'settings.contribute': 'المساهمة',
 	'settings.language': 'اللغة',
 
 	'nav.openNavigation': 'فتح التنقل',
@@ -53,6 +54,13 @@ export const ar: TranslationStrings = {
 	'acknowledgments.teleprompter': 'هذا مشروع رائع ألهم بعض الحلول التقنية في هذا المشروع.',
 	'acknowledgments.quranMajeed': 'ميزة حفظ العلامات المرجعية وموضع القراءة الأخير مستوحاة من تطبيق QuranMajeed.',
 	'acknowledgments.speechApi': 'التعرف على الصوت مدعوم بواسطة Web Speech API.',
+
+	'contribute.title': 'المساهمة',
+	'contribute.intro': 'مصحف القيام مفتوح المصدر! يمكنك المساعدة في تحسينه على GitHub.',
+	'contribute.starRepo': 'أضف نجمة للمستودع لإظهار دعمك.',
+	'contribute.reportIssues': 'أبلغ عن الأخطاء أو اقترح ميزات بفتح مشكلة.',
+	'contribute.submitPRs': 'أرسل طلبات سحب للمساهمة بتحسينات الكود.',
+	'contribute.thankYou': 'جزاكم الله خيرًا على مساهماتكم!',
 
 	'installGuide.title': 'تثبيت التطبيق',
 	'installGuide.intro': 'تثبيت التطبيق يمنحك تجربة تطبيق أصلي، ووصولًا بدون إنترنت، وأيقونة على الشاشة الرئيسية.',
