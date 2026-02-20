@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		isBookmarked: boolean;
@@ -11,8 +12,8 @@
 <button
 	onclick={onToggle}
 	class="bg-gray-800 hover:bg-gray-700 p-2 rounded-full shadow-lg transition-colors"
-	title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-	aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+	title={isBookmarked ? t('bookmarks.remove') : t('bookmarks.add')}
+	aria-label={isBookmarked ? t('bookmarks.remove') : t('bookmarks.add')}
 >
 	<svg
 		class="w-5 h-5 {isBookmarked ? 'text-amber-500 fill-amber-500' : 'text-gray-400'}"

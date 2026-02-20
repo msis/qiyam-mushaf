@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Verse, GlobalVerseKey } from '$lib/types';
+	import { t } from '$lib/i18n';
 	interface Props {
 		verse: Verse;
 		verseKey: GlobalVerseKey;
@@ -62,14 +63,14 @@
 		style="font-size: var(--verse-font-size, 28px)"
 	>
 		{#if isBookmarked}
-			<span class="inline-block text-amber-500 ml-1" title="Bookmarked">
+			<span class="inline-block text-amber-500 ms-1" title={t('verse.bookmarked')}>
 				<svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24">
 					<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
 				</svg>
 			</span>
 		{/if}
 		<span
-			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ml-2 align-middle {isCurrentVerse
+			class="inline-block text-sm font-bold px-1.5 py-0.5 rounded ms-2 align-middle {isCurrentVerse
 				? 'bg-amber-600 text-white'
 				: 'bg-gray-700 text-gray-400'}"
 		>

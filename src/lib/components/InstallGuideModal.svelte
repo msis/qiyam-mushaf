@@ -1,5 +1,6 @@
 <script lang="ts">
-	import InstallGuideContent from '$lib/content/install-guide.md';
+	import InstallGuideContent from '$lib/content/InstallGuideContent.svelte';
+	import { t } from '$lib/i18n';
 
 	interface Props {
 		onClose: () => void;
@@ -29,11 +30,10 @@
 	aria-modal="true"
 	aria-labelledby="modal-title"
 	tabindex="-1"
-	dir="ltr"
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
 		<div class="flex justify-between items-center mb-6">
-			<h2 id="modal-title" class="text-xl font-bold text-amber-100">Install App</h2>
+			<h2 id="modal-title" class="text-xl font-bold text-amber-100">{t('installGuide.title')}</h2>
 			<button
 				onclick={onClose}
 				class="text-gray-400 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700"
@@ -50,7 +50,7 @@
 			onclick={onClose}
 			class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-lg transition-colors mt-6"
 		>
-			Close
+			{t('common.close')}
 		</button>
 	</div>
 </div>

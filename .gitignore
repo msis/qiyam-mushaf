@@ -30,3 +30,7 @@ coverage/
 
 # Misc
 *.local
+
+# AI
+CLAUDE.md
+

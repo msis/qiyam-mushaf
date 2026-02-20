@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
     <meta
@@ -27,6 +27,13 @@
   </head>
   <body data-sveltekit-preload-data="hover" class="bg-gray-900">
     <script>
+      // Pre-hydration: apply saved locale before framework boots to avoid flash
+      (function () {
+        var rtlLocales = { ar: true, ur: true };
+        var locale = localStorage.getItem("locale") || "en";
+        document.documentElement.lang = locale;
+        document.documentElement.dir = rtlLocales[locale] ? "rtl" : "ltr";
+      })();
       window.__pwaInstallPrompt = null;
       window.addEventListener("beforeinstallprompt", function (e) {
         e.preventDefault();
