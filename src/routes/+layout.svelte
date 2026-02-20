@@ -7,7 +7,6 @@
 
 <svelte:head>
   <title>{t('app.title')}</title>
-  <meta name="description" content={t('app.description')} />
 </svelte:head>
 
 {@render children()}
