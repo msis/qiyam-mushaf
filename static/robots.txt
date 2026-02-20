@@ -1,0 +1,8 @@
+# Qiyam Mushaf - robots.txt
+# Allow all search engines and AI bots
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://qiyam-mushaf.com/sitemap.xml
