@@ -4,9 +4,12 @@
 	import { getSettingsStore } from '$lib/stores/settings.svelte';
 	import { getPwaInstallStore } from '$lib/stores/pwaInstall.svelte';
 	import { WHATSAPP_FEEDBACK_INVITE, WHATSAPP_SUPPORT_INVITE } from '$lib/utils/constants';
+	import { t, SUPPORTED_LOCALES, type Locale } from '$lib/i18n';
+
 	interface Props {
 		onClose: () => void;
 		onOpenAcknowledgments: () => void;
+		onOpenContribute: () => void;
 		onOpenBookmarks: () => void;
 		onOpenInstallGuide: () => void;
 		continueEnabled?: boolean;
@@ -20,6 +23,7 @@
 	let {
 		onClose,
 		onOpenAcknowledgments,
+		onOpenContribute,
 		onOpenBookmarks,
 		onOpenInstallGuide,
 		continueEnabled = true,
@@ -42,6 +46,11 @@
 	function handleAcknowledgments(): void {
 		onClose();
 		onOpenAcknowledgments();
+	}
+
+	function handleContribute(): void {
+		onClose();
+		onOpenContribute();
 	}
 
 	function handleBookmarks(): void {
@@ -87,6 +96,11 @@
 	function handleFontSizeChange(nextSize: number): void {
 		settingsStore.setVerseFontSize(nextSize);
 	}
+
+	function handleLocaleChange(e: Event): void {
+		const select = e.currentTarget as HTMLSelectElement;
+		settingsStore.setLocale(select.value as Locale);
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -98,11 +112,10 @@
 	aria-modal="true"
 	aria-labelledby="modal-title"
 	tabindex="-1"
-	dir="ltr"
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
 		<div class="flex justify-between items-center mb-6">
-			<h2 id="modal-title" class="text-xl font-bold text-amber-100">Settings</h2>
+			<h2 id="modal-title" class="text-xl font-bold text-amber-100">{t('settings.title')}</h2>
 			<button
 				onclick={onClose}
 				class="text-gray-400 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700"
@@ -112,29 +125,42 @@
 		</div>
 
 		<div class="space-y-3">
+			<div class="w-full bg-gray-700/40 border border-gray-700 text-amber-100 font-medium py-3 px-4 rounded-lg">
+				<label for="language-select" class="block text-sm text-amber-200 mb-2">&#x1F310; {t('settings.language')}</label>
+				<select
+					id="language-select"
+					value={settingsStore.locale}
+					onchange={handleLocaleChange}
+					class="w-full bg-gray-700 text-amber-100 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+				>
+					{#each SUPPORTED_LOCALES as locale (locale.code)}
+						<option value={locale.code}>{locale.nativeName}</option>
+					{/each}
+				</select>
+			</div>
 			<FontSizeControl
 				value={settingsStore.verseFontSize}
 				onChange={handleFontSizeChange}
 			/>
 			<button
 				type="button"
-				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-left flex items-center cursor-pointer"
+				class="w-full bg-gray-700 hover:bg-gray-600 text-amber-100 font-medium py-3 px-4 rounded-lg transition-colors text-start flex items-center cursor-pointer"
 				onclick={handleToggle}
 				onkeydown={handleToggleKeydown}
 				role="switch"
 				aria-checked={continueEnabled}
 			>
 				<svg
-					class="w-5 h-5 mr-3"
+					class="w-5 h-5 me-3"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
 				>
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 				</svg>
-				Continue where you left off
-				<span class="ml-auto">
-					<span class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+				{t('settings.continueWhereLeftOff')}
+				<span class="ms-auto">
+					<span class="relative inline-block w-10 me-2 align-middle select-none transition duration-200 ease-in">
 						<input
 							type="checkbox"
 							id="continue-toggle"
@@ -148,9 +174,9 @@
 					</span>
 				</span>
 			</button>
-			<AppButton onclick={handleBookmarks} ariaLabel="Open bookmarks">
+			<AppButton onclick={handleBookmarks} ariaLabel={t('settings.bookmarks')}>
 				{#snippet icon()}
-					<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-5 h-5 me-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -159,44 +185,44 @@
 						/>
 					</svg>
 				{/snippet}
-				Bookmarks
+				{t('settings.bookmarks')}
 				{#if bookmarkCount > 0}
-					<span class="ml-auto bg-amber-600 text-white text-xs px-2 py-0.5 rounded-full">
+					<span class="ms-auto bg-amber-600 text-white text-xs px-2 py-0.5 rounded-full">
 						{bookmarkCount}
 					</span>
 				{/if}
 			</AppButton>
 			{#if pwaStore.isInstalled}
 				<div class="w-full bg-gray-700 text-gray-400 font-medium py-3 px-4 rounded-lg flex items-center">
-					<svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-5 h-5 me-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 					</svg>
-					App Installed
+					{t('settings.appInstalled')}
 				</div>
 			{:else}
 				<div class="flex gap-2">
-					<AppButton onclick={pwaStore.canInstall ? handleInstall : handleInstallGuide} ariaLabel="Install app" class="flex-1">
+					<AppButton onclick={pwaStore.canInstall ? handleInstall : handleInstallGuide} ariaLabel={t('settings.installApp')} class="flex-1">
 						{#snippet icon()}
-							<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="w-5 h-5 me-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
 							</svg>
 						{/snippet}
-						Install App
+						{t('settings.installApp')}
 					</AppButton>
 					<button
 						type="button"
 						onclick={handleInstallGuide}
 						class="w-12 bg-gray-700 hover:bg-gray-600 text-amber-100 font-bold rounded-lg transition-colors flex items-center justify-center"
-						aria-label="Installation instructions"
+						aria-label={t('settings.installGuide')}
 					>
 						i
 					</button>
 				</div>
 			{/if}
 			{#if WHATSAPP_FEEDBACK_INVITE}
-				<AppButton onclick={handleOpenFeedback} ariaLabel="Send feedback on WhatsApp">
+				<AppButton onclick={handleOpenFeedback} ariaLabel={t('settings.feedback')}>
 					{#snippet icon()}
-						<svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="w-5 h-5 me-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -205,13 +231,13 @@
 							/>
 						</svg>
 					{/snippet}
-					Feedback (WhatsApp)
+					{t('settings.feedback')}
 				</AppButton>
 			{/if}
 			{#if WHATSAPP_SUPPORT_INVITE}
-				<AppButton onclick={handleOpenSupport} ariaLabel="Get support on WhatsApp">
+				<AppButton onclick={handleOpenSupport} ariaLabel={t('settings.support')}>
 					{#snippet icon()}
-						<svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="w-5 h-5 me-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -220,12 +246,25 @@
 							/>
 						</svg>
 					{/snippet}
-					Support (WhatsApp)
+					{t('settings.support')}
 				</AppButton>
 			{/if}
-			<AppButton onclick={handleAcknowledgments} ariaLabel="View acknowledgments">
+			<AppButton onclick={handleContribute} ariaLabel={t('settings.contribute')}>
 				{#snippet icon()}
-					<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-5 h-5 me-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+						/>
+					</svg>
+				{/snippet}
+				{t('settings.contribute')}
+			</AppButton>
+			<AppButton onclick={handleAcknowledgments} ariaLabel={t('settings.acknowledgments')}>
+				{#snippet icon()}
+					<svg class="w-5 h-5 me-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -234,7 +273,7 @@
 						/>
 					</svg>
 				{/snippet}
-				Acknowledgments
+				{t('settings.acknowledgments')}
 			</AppButton>
 		</div>
 	</div>

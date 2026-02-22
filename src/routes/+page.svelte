@@ -10,6 +10,7 @@
 	import SettingsButton from '$lib/components/SettingsButton.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import AcknowledgmentsModal from '$lib/components/AcknowledgmentsModal.svelte';
+	import ContributeModal from '$lib/components/ContributeModal.svelte';
 	import InstallGuideModal from '$lib/components/InstallGuideModal.svelte';
 	import { getPwaInstallStore } from '$lib/stores/pwaInstall.svelte';
 	import PositionBadge from '$lib/components/PositionBadge.svelte';
@@ -18,6 +19,7 @@
 	import BookmarkButton from '$lib/components/BookmarkButton.svelte';
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte';
 	import { ERROR_DISMISS_DELAY } from '$lib/utils/constants';
+	import { t } from '$lib/i18n';
 	import type { GlobalVerseKey } from '$lib/types';
 	import { onMount, untrack } from 'svelte';
 
@@ -247,11 +249,11 @@
 	class="h-screen bg-gray-900 flex flex-col"
 	style:--verse-font-size="{settingsStore.verseFontSize}px"
 >
-	<div class="fixed top-4 right-4 z-40">
+	<div class="fixed top-4 end-4 z-40">
 		<SettingsButton onclick={() => (appState.isSettingsModalOpen = true)} />
 	</div>
 
-	<div class="fixed top-4 left-4 z-40 flex items-center gap-2">
+	<div class="fixed top-4 start-4 z-40 flex items-center gap-2">
 		<PositionBadge
 			surahName={currentSurah?.name ?? ''}
 			surahNumber={currentPosition.surah}
@@ -272,7 +274,7 @@
 				class="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg"
 				disabled={isApplyingUpdate}
 			>
-				{isApplyingUpdate ? 'Updating…' : 'New version available — Reload'}
+				{isApplyingUpdate ? t('pwa.updating') : t('pwa.newVersionAvailable')}
 			</button>
 		</div>
 	{/if}
@@ -311,6 +313,7 @@
 		<SettingsModal
 			onClose={() => (appState.isSettingsModalOpen = false)}
 			onOpenAcknowledgments={() => (appState.isAcknowledgmentsOpen = true)}
+			onOpenContribute={() => (appState.isContributeOpen = true)}
 			onOpenInstallGuide={() => (appState.isInstallGuideOpen = true)}
 			onOpenBookmarks={openBookmarkList}
 			onToggleContinue={handleToggleContinue}
@@ -321,6 +324,10 @@
 
 	{#if appState.isAcknowledgmentsOpen}
 		<AcknowledgmentsModal onClose={() => (appState.isAcknowledgmentsOpen = false)} />
+	{/if}
+
+	{#if appState.isContributeOpen}
+		<ContributeModal onClose={() => (appState.isContributeOpen = false)} />
 	{/if}
 
 	{#if appState.isInstallGuideOpen}

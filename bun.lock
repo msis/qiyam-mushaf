@@ -3,11 +3,10 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "bun-react-template",
+      "name": "qiyam-mushaf",
       "dependencies": {
         "@fontsource/amiri": "^5.2.8",
         "fastest-levenshtein": "^1.0.16",
-        "idb": "^8.0.3",
         "virtua": "^0.48.5",
       },
       "devDependencies": {

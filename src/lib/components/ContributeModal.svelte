@@ -1,5 +1,5 @@
 <script lang="ts">
-	import InstallGuideContent from '$lib/content/InstallGuideContent.svelte';
+	import ContributeContent from '$lib/content/ContributeContent.svelte';
 	import { t } from '$lib/i18n';
 
 	interface Props {
@@ -33,7 +33,7 @@
 >
 	<div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
 		<div class="flex justify-between items-center mb-6">
-			<h2 id="modal-title" class="text-xl font-bold text-amber-100">{t('installGuide.title')}</h2>
+			<h2 id="modal-title" class="text-xl font-bold text-amber-100">{t('contribute.title')}</h2>
 			<button
 				onclick={onClose}
 				class="text-gray-400 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700"
@@ -43,7 +43,7 @@
 		</div>
 
 		<div class="text-amber-100 space-y-4 prose prose-invert max-w-none max-h-60 overflow-y-auto">
-			<InstallGuideContent />
+			<ContributeContent />
 		</div>
 
 		<button

@@ -1,12 +1,12 @@
 <script lang="ts">
   import '../app.css';
+  import { t } from '$lib/i18n';
 
   let { children } = $props();
 </script>
 
 <svelte:head>
-  <title>Qiyam Mushaf</title>
-  <meta name="description" content="Read the Mushaf with speech-recognition highlighting during your qiyam" />
+  <title>{t('app.title')}</title>
 </svelte:head>
 
 {@render children()}
